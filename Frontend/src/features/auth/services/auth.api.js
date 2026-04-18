@@ -56,7 +56,7 @@ export async function logout() {
 
 
 // Get current user function to call the get-me endpoint
-export async function getCurrentUser() {
+export async function getMe() {
     try{
         const response = await api.get('/api/auth/get-me')
         return response.data
