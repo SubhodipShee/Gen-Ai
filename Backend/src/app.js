@@ -8,7 +8,7 @@ const app = express()
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({
-    origin: "https://interviewtrained.netlify.app/",  // Replaced with deployed frontend URL for production
+    origin: "https://interviewtrained.netlify.app",  // Replaced with deployed frontend URL for production
     credentials: true
 }))
 // require all the routes here
