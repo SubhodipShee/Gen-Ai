@@ -8,7 +8,7 @@ export const AuthContext = createContext()
 export const AuthProvider = ({ children }) => {
 
     const [user, setUser] = useState(null)
-    const [loading, setLoading] = useState(false)    //this set to true in production & false in development to avoid the loading state on every refresh during development.
+    const [loading, setLoading] = useState(true)    //this set to true in production & false in development to avoid the loading state on every refresh during development.
 
 
 
