@@ -12,17 +12,17 @@ export const useAuth = () => {
         setLoading(true)
         try{
             const data = await login({email, password}) // call login api from auth.api.js
-            setUser(data.user)  
+             if (!data) return false
+            setUser(data.user)
+            return true   
             
         }catch(error){
+            return false
 
         }finally{
             setLoading(false)
         }
         
-
-        
-       
     }
 
     const handleRegister = async({username, email, password}) => {
@@ -30,9 +30,9 @@ export const useAuth = () => {
         try{
             const data = await register({username, email, password}) // call register api from auth.api.js
             setUser(data.user)
-
+            return true
         }catch(error){
-            
+            return false
         }
         finally{
             setLoading(false)
@@ -44,9 +44,10 @@ export const useAuth = () => {
         try{
             const data = await logout() // call logout api from auth.api.js
             setUser(null)
+            return true
             
         }catch(error){
-            
+            return false
         }
         finally{
             setLoading(false)
@@ -58,15 +59,14 @@ export const useAuth = () => {
     useEffect(() => {
 
         const getAndSetUser = async () => {
-            try{
-
-                const data = await getMe()
-                setUser(data.user)
-
-            }catch(error){}finally{
-                
-                setLoading(false)
-            }
+        try {
+            const data = await getMe()
+            setUser(data?.user || null)
+        } catch (error) {
+            setUser(null)
+        } finally {
+            setLoading(false)
+        }
             
             
         }

@@ -52,7 +52,7 @@ const technicalQuestionSchema = new mongoose.Schema({
 );
 
 // Define the behavioural question schema
-const behaviouralQuestionSchema = new mongoose.Schema({
+const behavioralQuestionSchema = new mongoose.Schema({
      question: { 
         type: String, 
         required: [true,"Technical question is required"] 
@@ -85,8 +85,8 @@ const skillGapSchema = new mongoose.Schema({
     _id: false
 })
 
-// Define the preparation tip schema
-const preparationTipSchema = new mongoose.Schema({
+// Define the preparation plan schema
+const preparationPlanSchema = new mongoose.Schema({
     day: {
         type: Number,
         required: [true,"Day is required"]
@@ -119,18 +119,23 @@ const interviewReportSchema = new mongoose.Schema({
         max: 100
     },
     technicalQuestions: [technicalQuestionSchema],
-    behaviouralQuestions: [behaviouralQuestionSchema],
+    behavioralQuestions: [behavioralQuestionSchema],
     skillGaps: [skillGapSchema],
-    preparationTips: [preparationTipSchema],
+    preparationPlan: [preparationPlanSchema],
     user:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
+    },
+    title:{
+        type: String,
+        required: [true,"Title is required"]
+        
     }
 },{
     timestamps: true
 })
 
 
-const InterviewReportModel = mongoose.model('InterviewReport', interviewReportSchema);
+const interviewReportModel = mongoose.model('InterviewReport', interviewReportSchema);
 
-module.exports = InterviewReportModel;
+module.exports = interviewReportModel;

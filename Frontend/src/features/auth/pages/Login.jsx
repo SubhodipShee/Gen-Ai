@@ -6,18 +6,22 @@ import { useAuth } from '../Hooks/useAuth.js'
 
 const Login = () => {
     
-    const { loading,handleLogin } = useAuth();
-    const navigate = useNavigate();
+    const { loading,handleLogin } = useAuth()
+    const navigate = useNavigate()
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
     // Temporary function to prevent form submission
     const handleSubmit = async(e) => {
-        e.preventDefault();
-        await handleLogin({ email, password });
+        e.preventDefault()
+        const success = await handleLogin({ email, password })
 
-        navigate("/")
+        if (success) {
+            navigate("/")
+        } else {
+            alert("Invalid email or password")
+        }
     }
 
     if(loading){
