@@ -1,6 +1,6 @@
 # GenAi - AI-Powered Interview Preparation Platform
 
-GenAi is a high-performance, full-stack application that represents the next generation of career development tools. By integrating the state-of-the-art **Google Gemini 1.5 Flash** model, GenAi revolutionizes how candidates prepare for interviews, bridging the gap between raw skills and professional presentation.
+GenAi is a high-performance, full-stack application that represents the next generation of career development tools. By integrating the state-of-the-art **Google Gemini** model, GenAi revolutionizes how candidates prepare for interviews, bridging the gap between raw skills and professional presentation.
 
 ## 🤖 AI Integration & Development
 
