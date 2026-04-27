@@ -1,63 +1,263 @@
-const {GoogleGenAI} = require ("@google/genai");
-const {z} = require("zod")
-const {zodToJsonSchema} = require("zod-to-json-schema")
+const { GoogleGenAI } = require("@google/genai");
+const { z } = require("zod");
+const puppeteer = require("puppeteer");
+const { zodToJsonSchema } = require("zod-to-json-schema");
+
 
 const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_API_KEY
-})
+  apiKey: process.env.GOOGLE_GENAI_API_KEY,
+});
 
+// Define the raw JSON schema directly — skip zodToJsonSchema entirely
+const interviewReportJsonSchema = {
+  type: "object",
+  properties: {
+    matchScore: {
+      type: "integer",
+      minimum: 0,
+      maximum: 100,
+      description:
+        "Score from 0-100 indicating how well the candidate matches the job requirements",
+    },
+    technicalQuestions: {
+      type: "array",
+      minItems: 8,
+      maxItems: 10,
+      items: {
+        type: "object",
+        properties: {
+          question: {
+            type: "string",
+            description: "The technical interview question",
+          },
+          intention: {
+            type: "string",
+            description: "What the interviewer is testing with this question",
+          },
+          answer: {
+            type: "string",
+            description:
+              "Detailed answer with approach, key points, and pitfalls",
+          },
+        },
+        required: ["question", "intention", "answer"],
+      },
+    },
+    behavioralQuestions: {
+      type: "array",
+      minItems: 5,
+      maxItems: 6,
+      items: {
+        type: "object",
+        properties: {
+          question: {
+            type: "string",
+            description: "The behavioral interview question",
+          },
+          intention: {
+            type: "string",
+            description: "What competency the interviewer is evaluating",
+          },
+          answer: {
+            type: "string",
+            description: "STAR method answer with key points to highlight",
+          },
+        },
+        required: ["question", "intention", "answer"],
+      },
+    },
+    skillGaps: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          skill: { type: "string", description: "The missing or weak skill" },
+          severity: { type: "string", enum: ["low", "medium", "high"] },
+        },
+        required: ["skill", "severity"],
+      },
+    },
+    preparationPlan: {
+      type: "array",
+      minItems: 7,
+      maxItems: 7,
+      items: {
+        type: "object",
+        properties: {
+          day: { type: "integer", description: "Day number from 1 to 7" },
+          focus: {
+            type: "string",
+            description: "Main topic to study that day",
+          },
+          task: {
+            type: "string",
+            description: "Specific actionable tasks for the day",
+          },
+        },
+        required: ["day", "focus", "task"],
+      },
+    },
+    title: {
+      type: "string",
+      description: "A Role fit based on report",
+    },
+  },
+  required: [
+    "matchScore",
+    "technicalQuestions",
+    "behavioralQuestions",
+    "skillGaps",
+    "preparationPlan",
+    "title",
+  ],
+};
 
-// Define the schema for the interview report using Zod
+// Keep Zod only for runtime validation after receiving the response
+const interviewReportZodSchema = z.object({
+  matchScore: z.number().min(0).max(100),
+  technicalQuestions: z.array(
+    z.object({
+      question: z.string(),
+      intention: z.string(),
+      answer: z.string(),
+    }),
+  ),
+  behavioralQuestions: z.array(
+    z.object({
+      question: z.string(),
+      intention: z.string(),
+      answer: z.string(),
+    }),
+  ),
+  skillGaps: z.array(
+    z.object({
+      skill: z.string(),
+      severity: z.enum(["low", "medium", "high"]),
+    }),
+  ),
+  preparationPlan: z.array(
+    z.object({
+      day: z.number(),
+      focus: z.string(),
+      task: z.string(),
+    }),
+  ),
+  title: z.string(),
+});
 
-const interviewReportSchema = z.object({
-    matchScore: z.number().describe("A score between 0 and 100 indicating how well the candidate's profile matches the job.describe, based on the analysis of the resume, self.describe and job.describe."),
-    technicalQuestions: z.array(z.object({
-        question: z.string().describe("The technical question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking the question"),
-        answer: z.string().describe("How to answer the question in a good way, what points to cover, what approach to take etc.")
-    })).describe("Technical questions that can be asked in the interview, along with the intention behind asking those questions and how to answer them in a good way."),
-    behavioralQuestions: z.array(z.object({
-        question: z.string().describe("The behavioral question can be asked in the interview"),
-        intention: z.string().describe("The intention of interviewer behind asking the question"),
-        answer: z.string().describe("How to answer the question in a good way, what points to cover, what approach to take etc.")
-    })).describe("Behavioral questions that can be asked in the interview, along with the intention behind asking those questions and how to answer them in a good way."),
-    skillGaps: z.array(z.object({
-        skill: z.string().describe("The skill that the candidate is lacking based on the resume, self.describe and job.describe"),
-        severity: z.enum(["low", "medium", "high"]).describe("The severity of the skill gap, whether it is a minor gap that can be easily filled, a moderate gap that requires some effort to fill, or a major gap that may require significant effort to fill."),
-    })).describe("The skill gaps in the candidate's profile along with the severity of each skill gap."),
-    preparationTips: z.array(z.object({
-        day:z.number().describe("The day number in the preparation plan, starting from 1"),
-        focus: z.string().describe("The focus area for the preparation on that day"),
-        tasks: z.array(z.string()).describe("The list of tasks to be completed on that day")
-    })).describe("A day-wise preparation plan for the candidate, outlining the focus area and tasks to be completed on each day leading up to the interview.")
+async function generateInterviewReport({
+  resume,
+  jobDescription,
+  selfDescription,
+}) {
+  const prompt = `
+You are an expert technical recruiter and interview coach with 15+ years of experience.
 
-})
+Analyze the candidate's profile against the job description and generate a comprehensive interview preparation report.
 
+## Resume
+${resume}
 
-// Function to generate the interview report using the AI model
+## Job Description
+${jobDescription}
 
-async function generateInterviewReport( {resume, selfDescription, jobDescription} ) {
+## Candidate Self-Description
+${selfDescription}
 
-    const prompt=`Generate an interview report for a candidate based on the following details:
-                    Resume: ${resume}
-                    Self.description: ${selfDescription}
-                    Job.description: ${jobDescription}
-                `
+## Instructions
 
+**matchScore**: Score 0–100 based on skills overlap, experience relevance, and seniority fit. Be realistic.
 
-    const response = await ai.models.generateContent({
-        model:"gemini-2.5-flash",
-        contents:prompt,
-        config:{
-            responseMimeType:"application/json",
-            responseSchema: zodToJsonSchema(interviewReportSchema)
+*technicalQuestions* (8–10 questions):
+- Ask questions based ONLY on technologies in the resume and job description.
+- Cover: core language/runtime concepts, database design, caching, system design, security, and performance.
+- For each: write the actual question, explain why an interviewer would ask it, and give a thorough answer.
 
-        }
-    })
-    return JSON.parse(response.text)
+*behavioralQuestions* (5–6 questions):
+- Tailor to the seniority level in the job description.
+- Cover: collaboration, conflict resolution, ownership, learning agility, technical decision-making.
+- For each: write the actual question, explain what the interviewer is evaluating, and give a STAR-method answer.
+
+**skillGaps**:
+- List every required or preferred skill from the job description that is weak or absent in the resume.
+- Assign severity: high = required and missing, medium = preferred but partial, low = nice-to-have.
+
+*preparationPlan* (exactly 7 days, day 1 through 7):
+- Day 1–2: Focus on high-severity skill gaps.
+- Day 3–5: Core technical topics and system design.
+- Day 6: Behavioral prep and resume storytelling.
+- Day 7: Mock interview and full revision.
+
+**title**: Create a concise title summarizing the candidate's fit and key focus areas for preparation.
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: prompt,
+    config: {
+      temperature: 0.2,
+      responseMimeType: "application/json",
+      responseJsonSchema: interviewReportJsonSchema, // ✅ raw schema, no zod wrapper
+    },
+  });
+
+  // console.log("Raw AI response:", response.text); // Log the raw response for debugging
+  // console.log(response.text)
+
+  const data = JSON.parse(response.text);
+
+  return data;
+}
+// using puppeteer
+
+const generatePdfFromHtml = async (htmlContent) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+  const pdfBuffer = await page.pdf({format:"A4",margin:{top:"20mm",bottom:"20mm",left:"15mm",right:"15mm"}});
+  await browser.close();
+
+  return pdfBuffer;
+
 }
 
+// genereating resume report with puppeteer
 
+const generateResumePdf = async ({
+  jobDescription,
+  resume,
+  selfDescription,
+}) => {
+  const resumePdfSchema = z.object({
+    html: z
+      .string()
+      .describe(
+        "HTML content of the resume which can be converted to pdf using any library like puppeteer",
+      ),
+  });
+  const prompt = `Generate resume for a candidate with the following details:
+                        Resume: ${resume}
+                        Self Description: ${selfDescription}
+                        Job Description: ${jobDescription}
 
+                        the response should be a JSON object with a single field "html" which contains the HTML content of the resume which can be converted to PDF using any library like puppeteer.
+                        The resume should be tailored for the given job description and should highlight the candidate's strengths and relevant experience. The HTML content should be well-formatted and structured, making it easy to read and visually appealing.
+                        The content of resume should be not sound like it's generated by AI and should be as close as possible to a real human-written resume.
+                        you can highlight the content using some colors or different font styles but the overall design should be simple and professional.
+                        The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
+                        The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.`;
 
-module.exports = { generateInterviewReport }
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseJsonSchema:zodToJsonSchema(resumePdfSchema),
+    },
+  });
+  const jsonContent = JSON.parse(response.text);
+  const pdfBuffer = await generatePdfFromHtml(jsonContent.html)
+  return pdfBuffer;
+};
+
+module.exports = {generateInterviewReport,generateResumePdf};
