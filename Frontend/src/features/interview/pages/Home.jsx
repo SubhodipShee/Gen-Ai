@@ -10,7 +10,7 @@ import { useAuth } from '../../auth/Hooks/useAuth';
 const Home = () => {
 
     const { loading, generateReport,reports } = useInterview()
-    const { handleLogout } = useAuth()
+    const { handleLogout, user } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const resumeInputRef = useRef()
@@ -82,7 +82,7 @@ const Home = () => {
                             <span className='panel__icon'>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </span>
-                            <h2>Your Profile</h2>
+                            <h2>{user?.username || 'Your Profile'}</h2>
                             <button className='logout-btn' onClick={onLogout} title='Logout'>
                                 <LuLogOut />
                                 <span>Logout</span>
