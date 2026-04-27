@@ -1,19 +1,28 @@
 import React,{useState, useRef} from 'react';
 import '../style/home.scss';
-import { LuUpload } from 'react-icons/lu';
+import { LuUpload, LuLogOut } from 'react-icons/lu';
 import {useInterview} from "../hooks/useInterview"
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../auth/Hooks/useAuth';
 
 
 
 const Home = () => {
 
     const { loading, generateReport,reports } = useInterview()
+    const { handleLogout } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
+
+    const onLogout = async () => {
+        const success = await handleLogout()
+        if (success) {
+            navigate('/login')
+        }
+    }
 
     const handleGenerateReport = async () => {
         const resumeFile = resumeInputRef.current.files[0]
@@ -74,6 +83,10 @@ const Home = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </span>
                             <h2>Your Profile</h2>
+                            <button className='logout-btn' onClick={onLogout} title='Logout'>
+                                <LuLogOut />
+                                <span>Logout</span>
+                            </button>
                         </div>
 
                         {/* Upload Resume */}
