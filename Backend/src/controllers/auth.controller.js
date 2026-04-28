@@ -43,7 +43,14 @@ async function registerUserController(req, res) {
         { expiresIn: "1d" }
     ) 
 
-    res.cookie("token", token )
+    //this is for only deployed version, in development we can just set the cookie without secure and sameSite attributes
+   const isProduction = process.env.NODE_ENV === "production";
+
+        res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax"
+    });
 
     res.status(201).json({
         message: "User registered successfully",
@@ -84,7 +91,14 @@ async function loginUserController(req, res) {
         { expiresIn: "1d" }
     ) 
 
-    res.cookie("token", token )
+    //this is for only deployed version, in development we can just set the cookie without secure and sameSite attributes
+    const isProduction = process.env.NODE_ENV === "production";
+
+        res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax"
+        });
 
     res.status(200).json({
         message: "User logged in successfully",
@@ -109,7 +123,12 @@ async function logoutUserController(req, res) {
         await blacklistTokenModel.create({ token })
     }
 
-    res.clearCookie("token")
+    // this code is for only deployed version, in development we can just clear the cookie without blacklisting
+    res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
+    });
 
     res.status(200).json({
         message: "User logged out successfully"
