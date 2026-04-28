@@ -1,5 +1,7 @@
 # GenAi - AI-Powered Interview Preparation Platform
 
+**Live Demo:** [interviewtrained.netlify.app](https://interviewtrained.netlify.app)
+
 GenAi is a high-performance, full-stack application that represents the next generation of career development tools. By integrating the state-of-the-art **Google Gemini** model, GenAi revolutionizes how candidates prepare for interviews, bridging the gap between raw skills and professional presentation.
 
 ## 🤖 AI Integration & Development
