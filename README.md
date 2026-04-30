@@ -4,6 +4,10 @@
 
 GenAi is a high-performance, full-stack application that represents the next generation of career development tools. By integrating the state-of-the-art **Google Gemini** model, GenAi revolutionizes how candidates prepare for interviews, bridging the gap between raw skills and professional presentation.
 
+## 🏗️ System Architecture
+
+For a detailed breakdown of the system design, components, and workflows, please refer to the **[System Architecture Documentation](ARCHITECTURE.md)**.
+
 ## 🤖 AI Integration & Development
 
 In today's fast-evolving tech landscape, this project stands at the intersection of Generative AI and Human Resources. It utilizes advanced Prompt Engineering and JSON-schema-based AI steering to ensure structured, high-fidelity outputs that provide actionable professional insights.
