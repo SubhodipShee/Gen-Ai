@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test --test-concurrency=1 \"tests/*.test.js\"",
+    "test:e2e": "node --test \"tests/e2e/*.test.js\"",
     "dev": "npx nodemon server.js"
   },
   "keywords": [],
@@ -25,5 +26,8 @@
     "pdf-parse": "^2.4.5",
     "puppeteer": "^24.42.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "mongodb-memory-server-core": "^11.3.0"
   }
 }

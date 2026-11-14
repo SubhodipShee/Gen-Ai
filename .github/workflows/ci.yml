@@ -1,0 +1,52 @@
+name: CI
+
+# runs on every push to main and on every pull request (free for public repositories)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            Backend/package-lock.json
+            Frontend/package-lock.json
+
+      # Ubuntu blocks the Chrome sandbox that Puppeteer uses by default, this allows it on the test machine
+      - name: Allow Chrome sandbox
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+
+      - name: Install backend
+        working-directory: Backend
+        run: npm ci
+
+      - name: Install frontend
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: Frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: Frontend
+        run: npm run build
+
+      # fake AI and an in-memory database: no Gemini key, no Atlas, no quota used
+      - name: Backend tests
+        working-directory: Backend
+        run: npm test
+
+      - name: Browser tests
+        working-directory: Backend
+        run: npm run test:e2e

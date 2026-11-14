@@ -1,5 +1,7 @@
 # GenAi - AI-Powered Interview Preparation Platform
 
+[![CI](https://github.com/SubhodipShee/Gen-Ai/actions/workflows/ci.yml/badge.svg)](https://github.com/SubhodipShee/Gen-Ai/actions/workflows/ci.yml)
+
 **Live Demo:** [interviewtrained.netlify.app](https://interviewtrained.netlify.app)
 
 GenAi is a high-performance, full-stack application that represents the next generation of career development tools. By integrating the state-of-the-art **Google Gemini** model, GenAi revolutionizes how candidates prepare for interviews, bridging the gap between raw skills and professional presentation.
@@ -129,6 +131,18 @@ Start the frontend development server:
 ```bash
 npm run dev
 ```
+
+## 🧪 Testing
+
+The tests use a fake AI and a temporary in-memory MongoDB, so they need no `.env`, no Gemini key and no Atlas database, and they never use the free Gemini quota.
+
+```bash
+cd Backend
+npm test          # API, rate limit, Gemini quota guard and PDF tests
+npm run test:e2e  # browser tests: builds the frontend and drives it in headless Chrome
+```
+
+GitHub Actions runs the frontend lint and build, the API tests and the browser tests on every push to `main` and on every pull request (`.github/workflows/ci.yml`).
 
 ## 📝 API Endpoints
 

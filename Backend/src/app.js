@@ -40,7 +40,8 @@ app.use((err, req, res, next) => {
         return res.status(400).json({ message: "Invalid ID" })
     }
 
-    console.error(err)
+    // only real server errors are logged, client errors (too large, rate limited, ...) are normal
+    if (!err.status || err.status >= 500) console.error(err)
     res.status(err.status || 500).json({
         message: err.status ? err.message : "Something went wrong, please try again"
     })

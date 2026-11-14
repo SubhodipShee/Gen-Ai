@@ -48,8 +48,8 @@ export async function logout() {
 
         return response.data
 
-    } catch (err) {
-
+    } catch {
+        // a failed logout request is ignored, the user is logged out on the screen anyway
     }
 }
 

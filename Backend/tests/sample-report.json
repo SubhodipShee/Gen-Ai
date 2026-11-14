@@ -1,0 +1,176 @@
+{
+  "title": "Strong Node.js Developer with significant Infrastructure and SQL skill gaps",
+  "matchScore": 65,
+  "technicalQuestions": [
+    {
+      "question": "Explain the Node.js Event Loop and how it handles asynchronous operations compared to a multi-threaded environment.",
+      "intention": "To verify the candidate's deep understanding of Node.js internals, which is critical for a Backend Engineer role.",
+      "answer": "Node.js uses a single-threaded event loop to handle I/O operations by delegating them to the system kernel or a thread pool (Libuv) whenever possible. The loop consists of phases: timers, pending callbacks, idle/prepare, poll, check, and close callbacks. Key point: It avoids the overhead of thread context switching. Pitfall: Blocking the event loop with heavy CPU-bound tasks will freeze the entire server."
+    },
+    {
+      "question": "You have experience with MongoDB. How would you design a schema in PostgreSQL for a financial transaction system, and what are the main differences in ACID compliance?",
+      "intention": "To test the candidate's ability to transition from NoSQL to the required SQL (PostgreSQL) environment.",
+      "answer": "In PostgreSQL, I would use a normalized schema with tables for Users, Accounts, and Transactions, utilizing Foreign Keys for referential integrity. Unlike MongoDB's flexible schema, Postgres enforces strict data types. For ACID compliance, Postgres provides robust multi-version concurrency control (MVCC). I would use 'BEGIN' and 'COMMIT' blocks to ensure that a transfer between two accounts either fully succeeds or fails, preventing partial updates."
+    },
+    {
+      "question": "What are the benefits of using TypeScript over plain JavaScript in a large-scale backend project?",
+      "intention": "To evaluate the candidate's readiness to adopt the required TypeScript stack.",
+      "answer": "TypeScript provides static typing, which catches errors at compile-time rather than runtime. In a backend context, this is invaluable for defining Interfaces for API requests and database models. It improves IDE support (autocompletion) and makes refactoring safer. Key points: Interfaces, Enums, and Generics help document the code implicitly, reducing the need for extensive manual documentation."
+    },
+    {
+      "question": "How would you implement a caching strategy using Redis to improve the performance of a frequently accessed but slowly changing API endpoint?",
+      "intention": "To validate the candidate's resume claim regarding Redis and performance optimization.",
+      "answer": "I would use the 'Cache-Aside' pattern. When a request hits the API, the app first checks Redis for the key. If it's a 'cache hit', return the data. If a 'cache miss', fetch from the DB, store it in Redis with a TTL (Time-To-Live), and return it. Pitfall: Ensure cache invalidation occurs whenever the underlying data in the DB is updated to avoid serving stale data."
+    },
+    {
+      "question": "Explain the role of a Message Queue like RabbitMQ or Kafka in a microservices architecture.",
+      "intention": "To assess knowledge of the job's requirement for distributed systems and asynchronous communication.",
+      "answer": "Message queues enable asynchronous communication between services, decoupling them. For example, when a user completes a purchase, the Order Service publishes a message to a 'Payment' queue. The Payment Service consumes this message at its own pace. This prevents a failure in one service from crashing the entire system and allows for better scalability and load leveling."
+    },
+    {
+      "question": "How do you secure a Node.js REST API? Mention JWT and other best practices.",
+      "intention": "To check the candidate's security awareness, specifically mentioned in their junior developer experience.",
+      "answer": "I use JWT for stateless authentication, storing the token in an HttpOnly cookie to prevent XSS. Beyond JWT, I implement 'helmet' for secure headers, 'express-rate-limit' to prevent Brute Force/DoS attacks, and 'cors' to restrict origin access. I also ensure all input is validated using libraries like Joi or Zod to prevent SQL injection or NoSQL injection."
+    },
+    {
+      "question": "What is Docker, and why is it useful for deploying Node.js applications?",
+      "intention": "To evaluate the candidate's knowledge of the required containerization tools.",
+      "answer": "Docker packages an application and its dependencies into a 'container,' ensuring it runs the same way in development, staging, and production. For Node.js, it solves the 'it works on my machine' problem by locking the Node version and OS environment. I would use a multi-stage build to keep the final image size small by excluding devDependencies."
+    },
+    {
+      "question": "Describe your approach to unit testing with Jest. What makes a good test case?",
+      "intention": "To verify the candidate's testing experience mentioned in their resume.",
+      "answer": "A good test case is isolated, repeatable, and fast. I use 'describe' blocks to group related tests and 'it' for specific requirements. I mock external dependencies (like DB calls or APIs) using 'jest.mock()' to ensure I am only testing the logic of the function. I aim for high branch coverage, not just line coverage, to ensure all logic paths are validated."
+    }
+  ],
+  "behavioralQuestions": [
+    {
+      "question": "Tell me about a time you led a small team to deliver a project under a tight deadline.",
+      "intention": "Evaluating leadership, project management, and ability to work under pressure.",
+      "answer": "Situation: At BrightCart, we had 6 weeks to ship a complex payment integration. Task: As the lead of 3 developers, I had to ensure we met the deadline without sacrificing quality. Action: I broke the project into daily sprints, identified the most critical paths (security and API reliability), and delegated the UI components to my peers. I held 15-minute daily standups to unblock issues immediately. Result: We shipped the integration 3 days early with 90% test coverage, and it handled 40k users without failure."
+    },
+    {
+      "question": "Describe a situation where you had a technical disagreement with a teammate. How did you resolve it?",
+      "intention": "Evaluating collaboration and conflict resolution skills.",
+      "answer": "Situation: A teammate wanted to use a new, unproven library for state management, while I preferred Redux for its stability. Task: Reach a consensus that benefited the project. Action: I suggested we do a quick 'spike' or POC for both. We evaluated them based on community support, documentation, and ease of testing. Result: We found the new library lacked proper debugging tools. My teammate agreed that Redux was the safer choice for our production needs, and we moved forward without friction."
+    },
+    {
+      "question": "Give an example of a time you identified a performance bottleneck and fixed it.",
+      "intention": "Evaluating technical ownership and problem-solving impact.",
+      "answer": "Situation: Our storefront API response times were lagging as user count grew. Task: Reduce the 35% latency. Action: I used Node.js profiling tools to identify slow database queries. I discovered missing indexes on frequently queried MongoDB fields and implemented Redis caching for the product catalog. Result: API response time dropped by 35%, significantly improving the user experience and reducing server load."
+    },
+    {
+      "question": "How do you stay updated with new technologies, and have you ever had to learn a new tool quickly for a job?",
+      "intention": "Evaluating learning agility, especially important given the candidate's gaps in TS/Postgres.",
+      "answer": "Situation: At CodeNest, I was hired with only basic JS knowledge but needed to use Express and JWT immediately. Task: Become productive within the first two weeks. Action: I spent my evenings taking a deep-dive course on Express and built a small side project to practice JWT implementation. Result: I was able to contribute to the main codebase by the end of my first week and eventually increased our test coverage to 70%."
+    },
+    {
+      "question": "Tell me about a mistake you made in a project. What did you learn?",
+      "intention": "Evaluating accountability and growth mindset.",
+      "answer": "Situation: Early in my career, I pushed a code change that broke the build because I hadn't run the full test suite locally. Task: Fix the issue and prevent recurrence. Action: I immediately reverted the commit, fixed the bug, and then proposed adding a pre-commit hook using Husky to run tests automatically. Result: The team adopted the hook, and we saw a 50% reduction in broken builds over the next quarter. I learned the importance of automated safeguards."
+    }
+  ],
+  "skillGaps": [
+    {
+      "skill": "TypeScript",
+      "severity": "high"
+    },
+    {
+      "skill": "PostgreSQL & Database Design",
+      "severity": "high"
+    },
+    {
+      "skill": "Docker",
+      "severity": "high"
+    },
+    {
+      "skill": "AWS",
+      "severity": "high"
+    },
+    {
+      "skill": "Message Queues (Kafka/RabbitMQ)",
+      "severity": "high"
+    },
+    {
+      "skill": "Microservices Architecture",
+      "severity": "medium"
+    },
+    {
+      "skill": "CI/CD Pipelines",
+      "severity": "medium"
+    },
+    {
+      "skill": "Kubernetes",
+      "severity": "low"
+    },
+    {
+      "skill": "GraphQL",
+      "severity": "low"
+    }
+  ],
+  "preparationPlan": [
+    {
+      "day": 1,
+      "focus": "TypeScript & PostgreSQL Fundamentals",
+      "tasks": [
+        "Complete a 'TypeScript for Node.js' crash course focusing on Interfaces and Types.",
+        "Install PostgreSQL and practice writing JOINs, Subqueries, and Transactions.",
+        "Convert a small Express/JS project to TypeScript."
+      ]
+    },
+    {
+      "day": 2,
+      "focus": "Docker & AWS Basics",
+      "tasks": [
+        "Write a Dockerfile for a Node.js app and run it as a container.",
+        "Learn AWS core services: EC2, S3, and RDS (specifically for Postgres).",
+        "Understand the basics of IAM roles and security groups in AWS."
+      ]
+    },
+    {
+      "day": 3,
+      "focus": "Message Queues & Microservices",
+      "tasks": [
+        "Study the difference between RabbitMQ (Push) and Kafka (Pull/Log-based).",
+        "Implement a simple Producer/Consumer pattern using Node.js and RabbitMQ.",
+        "Read about Microservices patterns: API Gateway, Service Discovery, and Circuit Breakers."
+      ]
+    },
+    {
+      "day": 4,
+      "focus": "Node.js Internals & Performance",
+      "tasks": [
+        "Deep dive into the Event Loop phases and Libuv.",
+        "Review memory management and how to detect memory leaks in Node.js.",
+        "Practice advanced Redis patterns like Pub/Sub and Sorted Sets."
+      ]
+    },
+    {
+      "day": 5,
+      "focus": "System Design & CI/CD",
+      "tasks": [
+        "Design a scalable backend for a 'Fintech Wallet' (Postgres, Queues, Caching).",
+        "Learn GitHub Actions or GitLab CI basics for automating tests and deployments.",
+        "Study REST vs GraphQL trade-offs."
+      ]
+    },
+    {
+      "day": 6,
+      "focus": "Behavioral Prep & Storytelling",
+      "tasks": [
+        "Prepare 5 STAR-method stories based on the resume (Team lead, API optimization).",
+        "Practice explaining the 'Why' behind technical choices (e.g., why MongoDB over SQL at BrightCart).",
+        "Record yourself answering 'Tell me about yourself' to ensure a concise pitch."
+      ]
+    },
+    {
+      "day": 7,
+      "focus": "Mock Interview & Final Review",
+      "tasks": [
+        "Conduct a mock technical interview focusing on TypeScript and SQL.",
+        "Review all 'Technical Questions' in this report.",
+        "Final review of the FinStack job description to align answers with their specific needs."
+      ]
+    }
+  ]
+}

@@ -48,8 +48,8 @@ export const useAuth = () => {
             await logout() // call logout api from auth.api.js
             setUser(null)
             return true
-            
-        }catch(error){
+
+        }catch{
             return false
         }
         finally{
