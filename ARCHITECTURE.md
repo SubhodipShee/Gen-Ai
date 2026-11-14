@@ -62,7 +62,7 @@ graph TD
   - JWT for authentication.
   - Cookie-based session management.
   - Blacklist model for token invalidation during logout.
-- **AI Integration**: Uses `GoogleGenAI` (Gemini API) to generate interview content based on Zod-defined schemas.
+- **AI Integration**: Uses `GoogleGenAI` (Gemini API) to generate interview content. A raw JSON schema steers the response format, and Zod validates the response before it is saved.
 
 ### 3.3 Data Models
 - **User**: Stores user credentials and profile info.

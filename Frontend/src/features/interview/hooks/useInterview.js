@@ -20,7 +20,6 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
-            console.log('Generate Report Response:', response)
             setReport(response.interviewReport)
             return response.interviewReport
         } catch (error) {
@@ -42,7 +41,7 @@ export const useInterview = () => {
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
+        return response?.interviewReport || null
     }
 
      const getReports = async () => {
@@ -57,7 +56,7 @@ export const useInterview = () => {
             setLoading(false)
         }
 
-        return response.interviewReports
+        return response?.interviewReports || []
     }
 
     const getResumePdf = async (interviewReportId) => {
@@ -71,9 +70,15 @@ export const useInterview = () => {
             link.setAttribute("download", `resume_${interviewReportId}.pdf`)
             document.body.appendChild(link)
             link.click()
+
+            // clean up the temporary link and file url after the download starts
+            link.remove()
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+            return true
         }
         catch (error) {
             console.log(error)
+            return false
         } finally {
             setLoading(false)
         }

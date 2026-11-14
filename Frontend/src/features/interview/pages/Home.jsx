@@ -13,6 +13,7 @@ const Home = () => {
     const { handleLogout, user } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
+    const [ resumeName, setResumeName ] = useState("")
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
@@ -24,13 +25,36 @@ const Home = () => {
         }
     }
 
+    // put the dropped file into the hidden file input, so drag & drop works like clicking
+    const onResumeDrop = (e) => {
+        e.preventDefault()
+        resumeInputRef.current.files = e.dataTransfer.files
+        setResumeName(e.dataTransfer.files[0]?.name || "")
+    }
+
     const handleGenerateReport = async () => {
         const resumeFile = resumeInputRef.current.files[0]
+
+        // check the inputs here first, so we don't wait for the server to reject them
+        if (!jobDescription.trim()) {
+            return alert("Please paste the job description")
+        }
+        if (!resumeFile && !selfDescription.trim()) {
+            return alert("Please upload a resume or add a self description")
+        }
+        if (resumeFile && resumeFile.type !== "application/pdf") {
+            return alert("Only PDF resumes are supported")
+        }
+        if (resumeFile && resumeFile.size > 3 * 1024 * 1024) {
+            return alert("Resume must be 3MB or smaller")
+        }
+
         const data = await generateReport({ jobDescription, selfDescription, resumeFile })
         if (data && data._id) {
             navigate(`/interview/${data._id}`)
         } else {
-            console.error('Failed to generate report - no data returned')
+            setResumeName("") // the file input is reset after the loading screen, so the file has to be picked again
+            alert("Could not generate your interview plan, please try again")
         }
     }
 
@@ -65,12 +89,13 @@ const Home = () => {
                             <span className='badge badge--required'>Required</span>
                         </div>
                         <textarea
+                            value={jobDescription}
                             onChange={(e) => { setJobDescription(e.target.value) }}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
                             maxLength={5000}
                         />
-                        <div className='char-counter'>0 / 5000 chars</div>
+                        <div className='char-counter'>{jobDescription.length} / 5000 chars</div>
                     </div>
 
                     {/* Vertical Divider */}
@@ -95,13 +120,15 @@ const Home = () => {
                                 Upload Resume
                                 <span className='badge badge--best'>Best Results</span>
                             </label>
-                            <label className='dropzone' htmlFor='resume'>
+                            <label className='dropzone' htmlFor='resume' onDragOver={(e) => e.preventDefault()} onDrop={onResumeDrop}>
                                 <span className='dropzone__icon'>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
                                 </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__title'>{resumeName || <>Click to upload or drag &amp; drop</>}</p>
+                                <p className='dropzone__subtitle'>PDF only (Max 3MB)</p>
+                                <input
+                                    onChange={(e) => { setResumeName(e.target.files[0]?.name || "") }}
+                                    ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf' />
                             </label>
                         </div>
 
@@ -112,6 +139,7 @@ const Home = () => {
                         <div className='self-description'>
                             <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
                             <textarea
+                                value={selfDescription}
                                 onChange={(e) => { setSelfDescription(e.target.value) }}
                                 id='selfDescription'
                                 name='selfDescription'

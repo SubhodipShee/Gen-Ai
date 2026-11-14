@@ -8,7 +8,7 @@ const app = express()
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({
-    origin: "https://interviewtrained.netlify.app",  // Replaced with deployed frontend URL for production
+    origin: process.env.CLIENT_URL || "https://interviewtrained.netlify.app",  // frontend URL from env, deployed frontend URL as fallback
     credentials: true
 }))
 // require all the routes here
@@ -18,5 +18,22 @@ const interviewRouter = require("./routes/interview.routes")
 //using all the routes here
 app.use("/api/auth", authRouter)
 app.use("/api/interview", interviewRouter)
+
+// error handler: sends every error as JSON instead of the default HTML error page
+app.use((err, req, res, next) => {
+    if (err.name === "MulterError") {
+        const message = err.code === "LIMIT_FILE_SIZE" ? "Resume must be 3MB or smaller" : err.message
+        return res.status(400).json({ message })
+    }
+
+    if (err.name === "CastError") {
+        return res.status(400).json({ message: "Invalid ID" })
+    }
+
+    console.error(err)
+    res.status(err.status || 500).json({
+        message: err.status ? err.message : "Something went wrong, please try again"
+    })
+})
 
 module.exports = app

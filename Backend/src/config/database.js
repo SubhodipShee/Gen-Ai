@@ -7,6 +7,7 @@ async function connectToDB() {
     }
         catch(error){
             console.error('Error connecting to Database:', error)
+            process.exit(1) // stop the server so the host restarts it, instead of running without a database
         }
     
 }

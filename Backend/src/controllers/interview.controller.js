@@ -11,32 +11,36 @@ const interviewReportModel = require("../models/interviewReport.model")
 async function generateInterviewReportController(req, res) {
 
     try {
-        if (!req.file) {
-            return res.status(400).json({ 
-                message: "Resume file is required" 
-            })
-        }
-
-        const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
         const { selfDescription, jobDescription } = req.body
 
-        if (!selfDescription || !jobDescription) {
-            return res.status(400).json({ 
-                message: "Self description and job description are required" 
+        if (!jobDescription) {
+            return res.status(400).json({
+                message: "Job description is required"
             })
         }
 
-        console.log('Generating interview report...')
+        // either a resume or a self description is enough to generate the report
+        if (!req.file && !selfDescription) {
+            return res.status(400).json({
+                message: "Please upload a resume or add a self description"
+            })
+        }
+
+        let resumeText = ""
+        if (req.file) {
+            const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
+            resumeText = resumeContent.text
+        }
+
         const interviewReportByAi = await generateInterviewReport({
-            resume: resumeContent.text,
+            resume: resumeText,
             selfDescription,
             jobDescription
         })
-        console.log('AI Report Generated:', interviewReportByAi)
 
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
-            resume: resumeContent.text,
+            resume: resumeText,
             selfDescription,
             jobDescription,
             ...interviewReportByAi
@@ -92,7 +96,8 @@ async function getAllInterviewReportsController(req, res) {
 async function generateResumePdfController(req, res) {
     const { interviewReportId } = req.params
 
-    const interviewReport = await interviewReportModel.findById(interviewReportId)
+    // only the owner of the report can generate a resume from it
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewReportId, user: req.user.id })
 
     if (!interviewReport) {
         return res.status(404).json({

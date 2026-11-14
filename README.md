@@ -13,7 +13,7 @@ For a detailed breakdown of the system design, components, and workflows, please
 In today's fast-evolving tech landscape, this project stands at the intersection of Generative AI and Human Resources. It utilizes advanced Prompt Engineering and JSON-schema-based AI steering to ensure structured, high-fidelity outputs that provide actionable professional insights.
 
 - **LLM Powered Analysis**: Leverages Google Gemini for deep semantic understanding of resumes vs. job descriptions.
-- **Structured Data Extraction**: Implements rigorous Zod-to-JSON schemas to force AI models into producing consistent, machine-readable preparation data.
+- **Structured Data Extraction**: Uses JSON schemas to force the AI model into producing consistent, machine-readable preparation data, and Zod to validate it before saving.
 - **Automated Intelligence**: Offloads complex reasoning (like identifying skill gaps and creating 7-day study plans) to specialized AI agents, reducing manual effort for the user.
 
 ## 🚀 Features
@@ -60,9 +60,11 @@ GenAi/
 │   └── server.js          # Entry point
 ├── Frontend/              # React application
 │   ├── src/
-│   │   ├── features/      # Feature-based modular structure
-│   │   ├── hooks/         # Custom hooks
-│   │   └── services/      # API wrappers
+│   │   └── features/      # Feature-based modular structure (auth, interview)
+│   │       ├── pages/     # UI pages
+│   │       ├── hooks/     # Custom hooks (logic)
+│   │       ├── services/  # API wrappers (Axios)
+│   │       └── *.context.jsx  # Shared state (Context API)
 │   └── index.html
 └── package.json           # Root configuration
 ```
@@ -88,10 +90,13 @@ npm install
 Create a `.env` file in the `Backend` directory:
 ```env
 PORT=3000
-MONGODB_URI=your_mongodb_connection_string
+NODE_ENV=development
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 GOOGLE_GENAI_API_KEY=your_gemini_api_key
+CLIENT_URL=http://localhost:5173
 ```
+`CLIENT_URL` is the frontend URL allowed by CORS (defaults to the deployed Netlify URL). Use `NODE_ENV=production` only on the deployed server, it makes the auth cookie `Secure` and `SameSite=None`.
 Start the backend server:
 ```bash
 npm run dev
@@ -101,6 +106,10 @@ npm run dev
 ```bash
 cd ../Frontend
 npm install
+```
+Create a `.env` file in the `Frontend` directory:
+```env
+VITE_API_URL=http://localhost:3000
 ```
 Start the frontend development server:
 ```bash
@@ -112,11 +121,14 @@ npm run dev
 ### Auth
 - `POST /api/auth/register` - Create a new account
 - `POST /api/auth/login` - Authenticate user
+- `GET /api/auth/logout` - Logout (blacklists the token)
+- `GET /api/auth/get-me` - Get the logged in user (private)
 
-### Interview
-- `POST /api/interview/generate` - Upload resume and generate report
-- `GET /api/interview/all` - Get all past reports
-- `GET /api/interview/:id` - Get specific report details
+### Interview (all private)
+- `POST /api/interview` - Generate a report (multipart: `jobDescription`, plus a `resume` PDF and/or `selfDescription`)
+- `GET /api/interview` - Get all past reports of the user
+- `GET /api/interview/report/:interviewId` - Get specific report details
+- `POST /api/interview/resume/pdf/:interviewReportId` - Generate a tailored resume PDF
 
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
