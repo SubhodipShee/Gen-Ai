@@ -159,7 +159,8 @@ describe("app in the browser", () => {
     it("shows 'not found' for an unknown report", async () => {
         await page.goto(`${APP}/interview/${new mongoose.Types.ObjectId()}`, { waitUntil: "networkidle0" })
         await page.waitForFunction(() => document.body.innerText.includes("not found"))
-        assert.equal(await text(".loading-screen h1"), "Interview report not found")
+        assert.equal(await text(".loader__title"), "Interview report not found")
+        assert.ok(await page.$("xpath/.//a[contains(., 'Go back home')]"), "has a way back home")
     })
 
     it("works on a phone", async () => {

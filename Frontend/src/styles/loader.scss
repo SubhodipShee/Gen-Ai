@@ -1,0 +1,252 @@
+// ── Variables ────────────────────────────────────────────────────────────────
+$loader-bg:      #0d1117;
+$loader-card:    #161b22;
+$loader-border:  #2a3348;
+$loader-text:    #e6edf3;
+$loader-muted:   #7d8590;
+$loader-accent:  #14ac3a;
+$loader-font:    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+
+// ── Full Screen Loading Card (components/Loader.jsx) ─────────────────────────
+.loader {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background-color: $loader-bg;
+    color: $loader-text;
+    font-family: $loader-font;
+
+    &__card {
+        width: 100%;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        background-color: $loader-card;
+        border: 1px solid $loader-border;
+        border-radius: 1rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        animation: loader-fade-in 0.3s ease;
+    }
+
+    // spinning green ring around the sparkle icon
+    &__ring {
+        position: relative;
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0deg, $loader-accent 300deg, transparent 360deg);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+            animation: loader-spin 1s linear infinite;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            background-color: rgba($loader-accent, 0.12);
+        }
+    }
+
+    &__icon {
+        position: relative;
+        z-index: 1;
+        font-size: 1.4rem;
+        color: $loader-accent;
+        animation: loader-pulse 1.6s ease-in-out infinite;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    &__message {
+        margin: 0;
+        max-width: 320px;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: $loader-muted;
+    }
+
+    // progress bar + seconds counter for the long AI tasks
+    &__progress {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    &__bar {
+        flex: 1;
+        height: 6px;
+        border-radius: 1rem;
+        background-color: #1e2535;
+        overflow: hidden;
+    }
+
+    &__fill {
+        height: 100%;
+        border-radius: 1rem;
+        background: linear-gradient(90deg, rgba($loader-accent, 0.6), $loader-accent);
+        transition: width 1s linear;
+    }
+
+    &__time {
+        min-width: 2.5rem;
+        text-align: right;
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        color: $loader-muted;
+    }
+
+    // interview tip shown while waiting, changes every few seconds
+    &__tip {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        margin: 0.75rem 0 0;
+        padding: 0.75rem 0.9rem;
+        text-align: left;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: $loader-muted;
+        background-color: rgba($loader-accent, 0.06);
+        border: 1px solid rgba($loader-accent, 0.18);
+        border-radius: 0.6rem;
+        animation: loader-fade-in 0.4s ease;
+
+        b {
+            color: $loader-text;
+        }
+    }
+
+    &__tip-icon {
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+        color: $loader-accent;
+    }
+
+    // step by step progress for the long AI tasks
+    &__steps {
+        list-style: none;
+        width: 100%;
+        margin: 1rem 0 0;
+        padding: 1rem 0 0;
+        border-top: 1px solid $loader-border;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        text-align: left;
+    }
+
+    &__step {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-size: 0.85rem;
+        color: $loader-muted;
+        transition: color 0.3s, opacity 0.3s;
+
+        &--waiting {
+            opacity: 0.5;
+        }
+
+        &--active {
+            color: $loader-text;
+
+            .loader__step-mark {
+                border-color: $loader-accent;
+                border-top-color: transparent;
+                animation: loader-spin 0.8s linear infinite;
+            }
+        }
+
+        &--done .loader__step-mark {
+            color: #ffffff;
+            background-color: $loader-accent;
+            border-color: $loader-accent;
+        }
+    }
+
+    &__step-mark {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        border: 2px solid $loader-border;
+        border-radius: 50%;
+    }
+
+    // the "not found" card reuses this layout with a button
+    .button {
+        margin-top: 0.75rem;
+        text-decoration: none;
+    }
+}
+
+@keyframes loader-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loader-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.85);
+        opacity: 0.7;
+    }
+}
+
+@keyframes loader-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// people who turned off animations in their system settings get a calm, slow loader
+@media (prefers-reduced-motion: reduce) {
+    .loader__ring::before,
+    .loader__step--active .loader__step-mark {
+        animation-duration: 3s;
+    }
+
+    .loader__icon,
+    .loader__card,
+    .loader__tip {
+        animation: none;
+    }
+}

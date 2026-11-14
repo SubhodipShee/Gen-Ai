@@ -1,6 +1,7 @@
 import React,{ useState} from 'react'
 import {useNavigate,Link} from 'react-router'
 import { useAuth } from '../Hooks/useAuth';
+import Loader from '../../../components/Loader';
 
 
 
@@ -11,12 +12,15 @@ const Register = () => {
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [submitting, setSubmitting] = useState(false)
 
     const { loading,handleRegister } = useAuth();
 
   const handleSubmit = async(e) => {
         e.preventDefault();
+        setSubmitting(true)
         const { success, message } = await handleRegister({ username, email, password });
+        setSubmitting(false)
 
         if (success) {
             navigate("/");
@@ -26,8 +30,9 @@ const Register = () => {
     }
     
 
-    if(loading){
-        return(<main><h1>Loading...</h1></main>)
+    // the full screen loader is only for the first session check, while creating the account the form stays on screen
+    if(loading && !submitting){
+        return <Loader title="Checking your session" message="Just a moment…" />
     }
 
   return (
@@ -60,7 +65,9 @@ const Register = () => {
                     type="password" id="password" name="password" placeholder='Enter Password' required />
                 </div>
 
-                <button className='button primary-button'>Register</button>
+                <button className='button primary-button' disabled={submitting} aria-busy={submitting}>
+                    {submitting ? <><span className='button__spinner' />Creating your account…</> : 'Register'}
+                </button>
             </form>
 
             <p>Already have an account? <Link to="/login">Login</Link></p>

@@ -4,8 +4,25 @@ import { LuUpload, LuLogOut, LuTrash2 } from 'react-icons/lu';
 import {useInterview} from "../hooks/useInterview"
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../auth/Hooks/useAuth';
+import Loader from '../../../components/Loader';
 
 
+// shown one after another while the AI writes the report (about 15 seconds)
+const GENERATE_STEPS = [
+    "Reading your resume and the job description",
+    "Matching your skills with the job",
+    "Writing technical and behavioral questions",
+    "Planning your 7-day preparation",
+]
+
+// short interview tips to read while waiting
+const WAITING_TIPS = [
+    "Use the STAR method for behavioral answers: Situation, Task, Action, Result.",
+    "Back up your claims with numbers, like \"35% faster\" or \"40,000 users\".",
+    "It is fine to pause for a few seconds and think before you answer.",
+    "Keep 2 or 3 questions ready to ask the interviewer at the end.",
+    "Read about the company's product and recent news before the interview.",
+]
 
 const Home = () => {
 
@@ -70,9 +87,12 @@ const Home = () => {
 
     if (loading) {
         return (
-            <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
-            </main>
+            <Loader
+                title="Building your interview plan"
+                message="This usually takes 15 to 30 seconds. Please keep this page open."
+                steps={GENERATE_STEPS}
+                expectedSeconds={20}
+                tips={WAITING_TIPS} />
         )
     }
 

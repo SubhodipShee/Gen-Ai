@@ -4,6 +4,7 @@ import { useInterview } from "../hooks/useInterview"
 import { useVoicePractice } from "../hooks/useVoicePractice"
 import { Link, useParams } from 'react-router'
 import { LuMic, LuFileText } from 'react-icons/lu'
+import Loader from '../../../components/Loader'
 
 
 
@@ -15,6 +16,13 @@ const NAV_ITEMS = [
 ]
 
 const CONFIDENCE_LEVELS = [ 1, 2, 3, 4, 5 ]
+
+// shown one after another while the AI writes the tailored resume (first download only)
+const RESUME_STEPS = [
+    "Reading your resume",
+    "Tailoring it to this job",
+    "Creating the PDF",
+]
 
 // 75 -> "1:15"
 const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
@@ -164,6 +172,7 @@ const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const [ notFoundId, setNotFoundId ] = useState(null)
     const [ preparingSheet, setPreparingSheet ] = useState(false)
+    const [ preparingResume, setPreparingResume ] = useState(false)
     const { report, getReportById, loading, getResumePdf, getCheatSheetPdf, togglePlanTask, reviewQuestion } = useInterview()
     const { interviewId } = useParams()
     const notFound = notFoundId === interviewId
@@ -177,7 +186,9 @@ const Interview = () => {
     }, [ interviewId ])
 
     const onDownloadResume = async () => {
+        setPreparingResume(true)
         const { success, message } = await getResumePdf(interviewId)
+        setPreparingResume(false)
         if (!success) {
             alert(message || "Could not create the resume PDF, please try again")
         }
@@ -208,20 +219,29 @@ const Interview = () => {
 
     if (notFound) {
         return (
-            <main className='loading-screen'>
-                <h1>Interview report not found</h1>
-                <p><Link to="/">Go back home</Link></p>
+            <main className='loader'>
+                <div className='loader__card'>
+                    <h1 className='loader__title'>Interview report not found</h1>
+                    <p className='loader__message'>It may have been deleted, or the link is not complete.</p>
+                    <Link to="/" className='button primary-button'>Go back home</Link>
+                </div>
             </main>
+        )
+    }
+
+    if (preparingResume) {
+        return (
+            <Loader
+                title="Writing your tailored resume"
+                message="The first download takes about 15 seconds, after that it is instant."
+                steps={RESUME_STEPS}
+                expectedSeconds={15} />
         )
     }
 
     // also wait when the report in state belongs to a different interview
     if (loading || !report || report._id !== interviewId) {
-        return (
-            <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
-            </main>
-        )
+        return <Loader title="Loading your interview plan" message="Getting your questions, road map and progress…" />
     }
 
     const scoreColor =
@@ -271,6 +291,7 @@ const Interview = () => {
                     <button
                         onClick={onDownloadCheatSheet}
                         disabled={preparingSheet}
+                        aria-busy={preparingSheet}
                         className='button secondary-button' >
                         <LuFileText style={{ marginRight: "0.6rem", verticalAlign: "-2px" }} />
                         {preparingSheet ? 'Preparing...' : 'Cheat Sheet'}
