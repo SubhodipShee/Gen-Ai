@@ -42,3 +42,17 @@ a{
     text-decoration: none;
     font-weight: 500;
 }
+
+
+// small phones: the form uses the full width instead of a fixed 350px
+@media (max-width: 480px) {
+    .form-container{
+        min-width: 0;
+        width: 100%;
+        padding: 0 1.25rem;
+    }
+
+    .input-group input{
+        font-size: 16px; // 16px stops phones from zooming in while typing
+    }
+}
