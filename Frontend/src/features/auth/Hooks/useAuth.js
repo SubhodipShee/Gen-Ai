@@ -1,6 +1,6 @@
-import { useContext,useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../auth.context.jsx";
-import {login, register, logout,getMe} from "../services/auth.api.js"
+import {login, register, logout} from "../services/auth.api.js"
 
 
 export const useAuth = () => {
@@ -56,25 +56,7 @@ export const useAuth = () => {
 
     }
 
-     // useEffect to fetch the user data 
-    useEffect(() => {
-
-        const getAndSetUser = async () => {
-        try {
-            const data = await getMe()
-            setUser(data?.user || null)
-        } catch (error) {
-            setUser(null)
-        } finally {
-            setLoading(false)
-        }
-            
-            
-        }
-
-        getAndSetUser()
-        
-    }, [])
+    // the logged in user is fetched once in AuthProvider (auth.context.jsx), not in every component using this hook
 
     return {user, loading, handleLogin, handleRegister, handleLogout}
 }

@@ -1,4 +1,4 @@
-const { GoogleGenAI } = require("@google/genai");
+const { GoogleGenAI, ThinkingLevel } = require("@google/genai");
 const { z } = require("zod");
 const puppeteer = require("puppeteer");
 
@@ -213,7 +213,8 @@ ${selfDescription || "Not provided"}
     model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
-      temperature: 0.2,
+      // low thinking makes the report much faster, temperature is ignored by Gemini 3 so it is not set
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       responseMimeType: "application/json",
       responseJsonSchema: interviewReportJsonSchema, // ✅ raw schema, no zod wrapper
     },
@@ -231,18 +232,20 @@ ${selfDescription || "Not provided"}
 
 const generatePdfFromHtml = async (htmlContent) => {
   const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-  const pdfBuffer = await page.pdf({format:"A4",margin:{top:"20mm",bottom:"20mm",left:"15mm",right:"15mm"}});
-  await browser.close();
-
-  return pdfBuffer;
-
+  try {
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({format:"A4",margin:{top:"20mm",bottom:"20mm",left:"15mm",right:"15mm"}});
+    return pdfBuffer;
+  } finally {
+    // always close chrome, even on error, so it does not stay in memory on the server
+    await browser.close();
+  }
 }
 
-// genereating resume report with puppeteer
+// genereating the html of the tailored resume with AI, the controller saves it so this runs once per report
 
-const generateResumePdf = async ({
+const generateResumeHtml = async ({
   jobDescription,
   resume,
   selfDescription,
@@ -274,8 +277,7 @@ const generateResumePdf = async ({
     throw new Error("AI returned an invalid resume, please try again");
   }
 
-  const pdfBuffer = await generatePdfFromHtml(result.data.html)
-  return pdfBuffer;
+  return result.data.html;
 };
 
-module.exports = {generateInterviewReport,generateResumePdf};
+module.exports = {generateInterviewReport,generateResumeHtml,generatePdfFromHtml};

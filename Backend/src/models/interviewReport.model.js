@@ -129,11 +129,18 @@ const interviewReportSchema = new mongoose.Schema({
     title:{
         type: String,
         required: [true,"Title is required"]
-        
+
+    },
+    // saved html of the AI tailored resume, so the resume PDF needs Gemini only once
+    resumeHtml: {
+        type: String
     }
 },{
     timestamps: true
 })
+
+// the reports list is searched by user and sorted by newest first
+interviewReportSchema.index({ user: 1, createdAt: -1 })
 
 
 const interviewReportModel = mongoose.model('InterviewReport', interviewReportSchema);

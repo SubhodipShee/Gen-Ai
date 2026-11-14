@@ -31,6 +31,11 @@ export const useInterview = () => {
     }
 
     const getReportById = async (interviewId) => {
+        // the report is already in state (for example right after generating it), no need to fetch again
+        if (report?._id === interviewId) {
+            return report
+        }
+
         setLoading(true)
         let response = null
         try {
@@ -44,16 +49,14 @@ export const useInterview = () => {
         return response?.interviewReport || null
     }
 
+     // no page-wide loading here, the list just shows up when it is ready instead of hiding the whole Home page
      const getReports = async () => {
-        setLoading(true)
         let response = null
         try {
             response = await getAllInterviewReports()
             setReports(response.interviewReports)
         } catch (error) {
             console.log(error)
-        } finally {
-            setLoading(false)
         }
 
         return response?.interviewReports || []
@@ -84,10 +87,10 @@ export const useInterview = () => {
         }
     }
 
+     // the single report is fetched by the Interview page itself (it needs the result to show "not found"),
+     // so here we only fetch the list for the Home page
      useEffect(() => {
-        if (interviewId) {
-            getReportById(interviewId)
-        } else {
+        if (!interviewId) {
             getReports()
         }
     }, [ interviewId ])

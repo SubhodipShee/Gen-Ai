@@ -143,7 +143,7 @@ async function logoutUserController(req, res) {
  */
 
 async function getMeController(req, res) {
- const user = await userModel.findById(req.user.id)
+ const user = await userModel.findById(req.user.id).lean()
 
  if (!user) {
     return res.status(404).json({ message: "User not found" })

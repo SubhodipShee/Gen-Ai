@@ -10,29 +10,31 @@ async function authUser(req, res, next) {
         .json({ message: "Token not provided" })
     }
 
-    const isTokenBlacklisted = await blacklistTokenModel.findOne({ 
-        token 
-    })
-
-
-    if(isTokenBlacklisted) {
-        return res.status(401).json({ 
-            message: "Token is invalid" 
-        })
-    }
-
+    // verify the token first, it needs no database call, so bad tokens are rejected fast
+    let decoded
     try {
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) 
-
-        req.user = decoded
-
-        next()
+        decoded = jwt.verify(token, process.env.JWT_SECRET)
 
     }catch (err) {
         return res.status(401)
         .json({ message: "Unauthorized" })
     }
+
+    const isTokenBlacklisted = await blacklistTokenModel.exists({
+        token
+    })
+
+
+    if(isTokenBlacklisted) {
+        return res.status(401).json({
+            message: "Token is invalid"
+        })
+    }
+
+    req.user = decoded
+
+    next()
 }
 
 

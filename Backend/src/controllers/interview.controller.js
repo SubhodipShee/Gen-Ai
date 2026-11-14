@@ -1,5 +1,5 @@
 const pdfParse = require("pdf-parse")
-const {generateInterviewReport, generateResumePdf} = require("../services/ai.service")
+const {generateInterviewReport, generateResumeHtml, generatePdfFromHtml} = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
 
@@ -67,11 +67,11 @@ async function getInterviewReportByIdController(req, res) {
     
     const { interviewId } = req.params
     
-    const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id })
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id }).select("-resumeHtml").lean()
 
     if (!interviewReport) {
-        return res.status(404).json({ 
-            message: "Interview report not found" 
+        return res.status(404).json({
+            message: "Interview report not found"
         })
     }
     res.status(200).json({
@@ -83,7 +83,7 @@ async function getInterviewReportByIdController(req, res) {
  * @description Controller to get all the interview reports of the user
  */
 async function getAllInterviewReportsController(req, res) {
-    const interviewReports = await interviewReportModel.find({ user: req.user.id }).sort({ createdAt: -1 }).select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan")
+    const interviewReports = await interviewReportModel.find({ user: req.user.id }).sort({ createdAt: -1 }).select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan -resumeHtml").lean()
     res.status(200).json({
         message: "Interview reports retrieved successfully",
         interviewReports
@@ -97,7 +97,7 @@ async function generateResumePdfController(req, res) {
     const { interviewReportId } = req.params
 
     // only the owner of the report can generate a resume from it
-    const interviewReport = await interviewReportModel.findOne({ _id: interviewReportId, user: req.user.id })
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewReportId, user: req.user.id }).lean()
 
     if (!interviewReport) {
         return res.status(404).json({
@@ -107,7 +107,14 @@ async function generateResumePdfController(req, res) {
 
     const { resume, jobDescription, selfDescription } = interviewReport
 
-    const pdfBuffer = await generateResumePdf({ resume, jobDescription, selfDescription })
+    // call Gemini only the first time, after that reuse the saved html
+    let { resumeHtml } = interviewReport
+    if (!resumeHtml) {
+        resumeHtml = await generateResumeHtml({ resume, jobDescription, selfDescription })
+        await interviewReportModel.updateOne({ _id: interviewReport._id }, { resumeHtml })
+    }
+
+    const pdfBuffer = await generatePdfFromHtml(resumeHtml)
 
     res.set({
         "Content-Type": "application/pdf",
