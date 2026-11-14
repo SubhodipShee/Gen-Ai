@@ -1,6 +1,5 @@
 const { GoogleGenAI, ThinkingLevel } = require("@google/genai");
 const { z } = require("zod");
-const puppeteer = require("puppeteer");
 
 
 const ai = new GoogleGenAI({
@@ -228,21 +227,6 @@ ${selfDescription || "Not provided"}
 
   return result.data;
 }
-// using puppeteer
-
-const generatePdfFromHtml = async (htmlContent) => {
-  const browser = await puppeteer.launch();
-  try {
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-    const pdfBuffer = await page.pdf({format:"A4",margin:{top:"20mm",bottom:"20mm",left:"15mm",right:"15mm"}});
-    return pdfBuffer;
-  } finally {
-    // always close chrome, even on error, so it does not stay in memory on the server
-    await browser.close();
-  }
-}
-
 // genereating the html of the tailored resume with AI, the controller saves it so this runs once per report
 
 const generateResumeHtml = async ({
@@ -280,4 +264,4 @@ const generateResumeHtml = async ({
   return result.data.html;
 };
 
-module.exports = {generateInterviewReport,generateResumeHtml,generatePdfFromHtml};
+module.exports = {generateInterviewReport,generateResumeHtml};

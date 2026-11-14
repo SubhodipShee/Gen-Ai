@@ -1,7 +1,21 @@
-import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf, deleteInterviewReport, updatePlanProgress, updateQuestionReview, getInterviewInsights} from "../services/interview.api"
+import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf, generateCheatSheetPdf, deleteInterviewReport, updatePlanProgress, updateQuestionReview, getInterviewInsights} from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
+
+// saves a pdf blob from the server as a file download
+const downloadPdf = (data, fileName) => {
+    const url = window.URL.createObjectURL(new Blob([ data ], { type: "application/pdf" }))
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", fileName)
+    document.body.appendChild(link)
+    link.click()
+
+    // clean up the temporary link and file url after the download starts
+    link.remove()
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+}
 
 
 export const useInterview = () => {
@@ -67,16 +81,7 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
-            const link = document.createElement("a")
-            link.href = url
-            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
-            document.body.appendChild(link)
-            link.click()
-
-            // clean up the temporary link and file url after the download starts
-            link.remove()
-            setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+            downloadPdf(response, `resume_${interviewReportId}.pdf`)
             return true
         }
         catch (error) {
@@ -84,6 +89,18 @@ export const useInterview = () => {
             return false
         } finally {
             setLoading(false)
+        }
+    }
+
+    // the cheat sheet is quick (no AI), so no page-wide loading, the page shows its own "Preparing..." text
+    const getCheatSheetPdf = async (interviewReportId) => {
+        try {
+            const response = await generateCheatSheetPdf({ interviewReportId })
+            downloadPdf(response, `cheatsheet_${interviewReportId}.pdf`)
+            return true
+        } catch (error) {
+            console.log(error)
+            return false
         }
     }
 
@@ -160,6 +177,6 @@ export const useInterview = () => {
     }, [ interviewId ])
 
 
-    return { loading, report, reports, insights, generateReport, getReportById, getReports, getResumePdf, deleteReport, togglePlanTask, reviewQuestion }
+    return { loading, report, reports, insights, generateReport, getReportById, getReports, getResumePdf, getCheatSheetPdf, deleteReport, togglePlanTask, reviewQuestion }
 
 }

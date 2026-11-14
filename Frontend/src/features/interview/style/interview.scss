@@ -108,6 +108,12 @@ $severity-low: #3fb950;
         align-items: center;
         flex-shrink: 0;
     }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
 }
 
 // ── Center Content ────────────────────────────────────────────────────────────
@@ -367,6 +373,107 @@ $severity-low: #3fb950;
         margin-left: auto;
         font-size: 0.75rem;
     }
+}
+
+// ── Voice Practice ────────────────────────────────────────────────────────────
+.voice-practice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed $border-color;
+
+    &__button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: fit-content;
+        padding: 0.45rem 0.9rem;
+        font-family: $font-stack;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: $accent;
+        background-color: rgba($accent, 0.08);
+        border: 1px solid rgba($accent, 0.3);
+        border-radius: 2rem;
+        cursor: pointer;
+
+        &--recording {
+            color: $severity-high;
+            background-color: rgba($severity-high, 0.08);
+            border-color: rgba($severity-high, 0.35);
+        }
+    }
+
+    &__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: $severity-high;
+        animation: voice-pulse 1s ease-in-out infinite;
+    }
+
+    &__error {
+        margin: 0;
+        font-size: 0.8rem;
+        color: $severity-high;
+    }
+
+    &__transcript {
+        margin: 0;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.82rem;
+        font-style: italic;
+        line-height: 1.6;
+        color: lighten($text-muted, 15%);
+        background-color: $bg-input;
+        border-radius: 0.4rem;
+    }
+
+    &__report {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    &__stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        span {
+            font-size: 0.75rem;
+            color: $text-muted;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid $border-color;
+            border-radius: 0.4rem;
+        }
+
+        b {
+            color: $text-primary;
+            margin-right: 0.2rem;
+        }
+    }
+
+    &__tips {
+        margin: 0;
+        padding-left: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        color: lighten($text-muted, 15%);
+    }
+
+    &__note {
+        font-size: 0.7rem;
+        color: $text-muted;
+    }
+}
+
+@keyframes voice-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 .revise-empty {
@@ -645,11 +752,14 @@ $severity-low: #3fb950;
             background-color: rgba($severity-high, 0.08);
             border: 1px solid rgba($severity-high, 0.2);
             cursor: pointer;
+
             // show at most 2 lines of the question
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            span {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
         }
     }
 }

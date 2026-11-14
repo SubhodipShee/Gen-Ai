@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const pdfParse = require("pdf-parse")
-const {generateInterviewReport, generateResumeHtml, generatePdfFromHtml} = require("../services/ai.service")
+const {generateInterviewReport, generateResumeHtml} = require("../services/ai.service")
+const {generatePdfFromHtml, buildCheatSheetHtml} = require("../services/pdf.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
 
@@ -120,6 +121,30 @@ async function generateResumePdfController(req, res) {
     res.set({
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename=resume_${interviewReportId}.pdf`
+    })
+
+    res.send(pdfBuffer)
+}
+
+/**
+ * @description Controller to generate a one page interview cheat sheet PDF from the saved report (no AI call)
+ */
+async function generateCheatSheetPdfController(req, res) {
+    const { interviewReportId } = req.params
+
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewReportId, user: req.user.id }).select("-resumeHtml").lean()
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found."
+        })
+    }
+
+    const pdfBuffer = await generatePdfFromHtml(buildCheatSheetHtml(interviewReport))
+
+    res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename=cheatsheet_${interviewReportId}.pdf`
     })
 
     res.send(pdfBuffer)
@@ -291,4 +316,4 @@ async function getInterviewInsightsController(req, res) {
     })
 }
 
-module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController, deleteInterviewReportController, updatePlanProgressController, updateQuestionReviewController, getInterviewInsightsController}
+module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController, generateCheatSheetPdfController, deleteInterviewReportController, updatePlanProgressController, updateQuestionReviewController, getInterviewInsightsController}

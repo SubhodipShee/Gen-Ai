@@ -29,6 +29,8 @@ In today's fast-evolving tech landscape, this project stands at the intersection
 - **History Tracking**: Save and review your previous interview preparation reports, or delete the ones you don't need.
 - **Prep Progress**: Tick off the 7-day plan tasks and see your progress on the report and in the history list.
 - **Career Gap Radar**: Shows which skill gaps repeat across all your target jobs, so you know what to learn first.
+- **Voice Practice**: Answer a question out loud and get a speaking report (length, words per minute, filler words, long pauses) using the browser's built-in speech recognition (Chrome, Edge, Safari).
+- **Interview Cheat Sheet**: One page PDF for the interview morning with your numbers to mention, 3 STAR stories, gaps, blind spots and the plan at a glance.
 - **Confidence Check & Revision**: Rate how sure you are before reading an answer, mark if you really knew it, and missed questions come back in "Revise Today" (next day, then 3 and 7 days). Questions you were sure about but got wrong show up as Blind Spots.
 - **Resume Optimization**: (Coming Soon) AI-assisted resume generation.
 
@@ -135,7 +137,8 @@ npm run dev
 - `PATCH /api/interview/report/:interviewId/progress` - Tick or untick a preparation plan task (`dayIndex`, `taskIndex`, `done`)
 - `PATCH /api/interview/report/:interviewId/question` - Save a confidence check (`type`, `index`, `knewIt`, optional `confidence` 1-5) and schedule the next revision
 - `GET /api/interview/insights` - Skill gaps that repeat across all reports (Career Gap Radar)
-- `POST /api/interview/resume/pdf/:interviewReportId` - Generate a tailored resume PDF
+- `POST /api/interview/resume/pdf/:interviewReportId` - Generate a tailored resume PDF (AI runs once, the html is saved for later downloads)
+- `POST /api/interview/cheatsheet/pdf/:interviewReportId` - Generate a one page interview cheat sheet PDF (no AI call)
 
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.

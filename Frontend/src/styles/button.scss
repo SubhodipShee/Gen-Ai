@@ -11,7 +11,18 @@
     &.primary-button{
         background-color: #06ab3b;
         color: white;
-        
+
+    }
+
+    &.secondary-button{
+        background-color: transparent;
+        color: #06ab3b;
+        border: 1px solid #06ab3b;
+    }
+
+    &:disabled{
+        opacity: 0.6;
+        cursor: default;
     }
 
     &:active{

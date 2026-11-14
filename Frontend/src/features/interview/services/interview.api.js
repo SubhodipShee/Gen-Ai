@@ -64,6 +64,17 @@ export const generateResumePdf = async ({ interviewReportId }) => {
 }
 
 /**
+ * @description Service to generate the one page interview cheat sheet pdf of a report.
+ */
+export const generateCheatSheetPdf = async ({ interviewReportId }) => {
+    const response = await api.post(`/api/interview/cheatsheet/pdf/${interviewReportId}`, null, {
+        responseType: "blob"
+    })
+
+    return response.data
+}
+
+/**
  * @description Service to delete an interview report by interviewId.
  */
 export const deleteInterviewReport = async (interviewId) => {
