@@ -1,4 +1,4 @@
-import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf} from "../services/interview.api"
+import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf, deleteInterviewReport, updatePlanProgress} from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
@@ -87,6 +87,46 @@ export const useInterview = () => {
         }
     }
 
+    const deleteReport = async (interviewId) => {
+        try {
+            await deleteInterviewReport(interviewId)
+            setReports(prev => prev.filter(item => item._id !== interviewId))
+            if (report?._id === interviewId) {
+                setReport(null)
+            }
+            return true
+        } catch (error) {
+            console.log(error)
+            return false
+        }
+    }
+
+    // no page-wide loading here, so ticking a task does not hide the page
+    const togglePlanTask = async ({ dayIndex, taskIndex, done }) => {
+        const previousReport = report
+
+        // tick the task on screen right away, then save it
+        setReport(prev => ({
+            ...prev,
+            preparationPlan: prev.preparationPlan.map((day, i) => {
+                if (i !== dayIndex) return day
+                const completedTasks = (day.completedTasks || []).filter(t => t !== taskIndex)
+                return { ...day, completedTasks: done ? [ ...completedTasks, taskIndex ] : completedTasks }
+            })
+        }))
+
+        try {
+            const response = await updatePlanProgress({ interviewId: report._id, dayIndex, taskIndex, done })
+            setReport(prev => ({ ...prev, preparationPlan: response.preparationPlan, progress: response.progress }))
+            setReports(prev => prev.map(item => item._id === report._id ? { ...item, progress: response.progress } : item))
+            return true
+        } catch (error) {
+            console.log(error)
+            setReport(previousReport) // saving failed, put the task back as it was
+            return false
+        }
+    }
+
      // the single report is fetched by the Interview page itself (it needs the result to show "not found"),
      // so here we only fetch the list for the Home page
      useEffect(() => {
@@ -96,6 +136,6 @@ export const useInterview = () => {
     }, [ interviewId ])
 
 
-    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
+    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf, deleteReport, togglePlanTask }
 
 }

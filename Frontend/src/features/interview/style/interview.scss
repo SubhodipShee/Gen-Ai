@@ -351,6 +351,29 @@ $severity-low: #3fb950;
         background-color: $text-muted;
         margin-top: 8px;
     }
+
+    &__check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        cursor: pointer;
+
+        input {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+            margin-top: 4px;
+            accent-color: $accent;
+            cursor: pointer;
+        }
+    }
+
+    &__task--done {
+        span {
+            color: $text-muted;
+            text-decoration: line-through;
+        }
+    }
 }
 
 // ── Right Sidebar ─────────────────────────────────────────────────────────────
@@ -426,6 +449,42 @@ $severity-low: #3fb950;
         font-size: 0.75rem;
         color: $severity-low;
         text-align: center;
+    }
+}
+
+// Prep Progress
+.plan-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &__label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $text-muted;
+        margin: 0;
+    }
+
+    &__bar {
+        height: 8px;
+        border-radius: 1rem;
+        background-color: $bg-input;
+        border: 1px solid $border-color;
+        overflow: hidden;
+    }
+
+    &__fill {
+        height: 100%;
+        background-color: $accent;
+        transition: width 0.3s ease;
+    }
+
+    &__text {
+        margin: 0;
+        font-size: 0.75rem;
+        color: $text-muted;
     }
 }
 

@@ -39,19 +39,24 @@ const QuestionCard = ({ item, index }) => {
     )
 }
 
-const RoadMapDay = ({ day }) => (
+const RoadMapDay = ({ day, onToggleTask }) => (
     <div className='roadmap-day'>
         <div className='roadmap-day__header'>
             <span className='roadmap-day__badge'>Day {day.day}</span>
             <h3 className='roadmap-day__focus'>{day.focus}</h3>
         </div>
         <ul className='roadmap-day__tasks'>
-            {day.tasks.map((task, i) => (
-                <li key={i}>
-                    <span className='roadmap-day__bullet' />
-                    {task}
-                </li>
-            ))}
+            {day.tasks.map((task, i) => {
+                const done = !!day.completedTasks?.includes(i)
+                return (
+                    <li key={i} className={done ? 'roadmap-day__task--done' : ''}>
+                        <label className='roadmap-day__check'>
+                            <input type='checkbox' checked={done} onChange={(e) => onToggleTask(i, e.target.checked)} />
+                            <span>{task}</span>
+                        </label>
+                    </li>
+                )
+            })}
         </ul>
     </div>
 )
@@ -60,7 +65,7 @@ const RoadMapDay = ({ day }) => (
 const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const [ notFoundId, setNotFoundId ] = useState(null)
-    const { report, getReportById, loading, getResumePdf } = useInterview()
+    const { report, getReportById, loading, getResumePdf, togglePlanTask } = useInterview()
     const { interviewId } = useParams()
     const notFound = notFoundId === interviewId
 
@@ -76,6 +81,13 @@ const Interview = () => {
         const success = await getResumePdf(interviewId)
         if (!success) {
             alert("Could not create the resume PDF, please try again")
+        }
+    }
+
+    const onToggleTask = async (dayIndex, taskIndex, done) => {
+        const success = await togglePlanTask({ dayIndex, taskIndex, done })
+        if (!success) {
+            alert("Could not save your progress, please try again")
         }
     }
 
@@ -104,6 +116,11 @@ const Interview = () => {
     const scoreText =
         report.matchScore >= 80 ? 'Strong match for this role' :
             report.matchScore >= 60 ? 'Good match, a few gaps to close' : 'Needs more preparation for this role'
+
+    // prep progress, counted here so it updates the moment a task is ticked
+    const totalTasks = report.preparationPlan.reduce((sum, day) => sum + day.tasks.length, 0)
+    const doneTasks = report.preparationPlan.reduce((sum, day) => sum + (day.completedTasks?.length || 0), 0)
+    const progress = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0
 
 
     return (
@@ -172,8 +189,8 @@ const Interview = () => {
                                 <span className='content-header__count'>{report.preparationPlan.length}-day plan</span>
                             </div>
                             <div className='roadmap-list'>
-                                {report.preparationPlan.map((day) => (
-                                    <RoadMapDay key={day.day} day={day} />
+                                {report.preparationPlan.map((day, dayIndex) => (
+                                    <RoadMapDay key={day.day} day={day} onToggleTask={(taskIndex, done) => onToggleTask(dayIndex, taskIndex, done)} />
                                 ))}
                             </div>
                         </section>
@@ -196,6 +213,21 @@ const Interview = () => {
                     </div>
 
                     <div className='sidebar-divider' />
+
+                    {/* Prep Progress (older reports have no tasks, so it is hidden for them) */}
+                    {totalTasks > 0 && (
+                        <>
+                            <div className='plan-progress'>
+                                <p className='plan-progress__label'>Prep Progress</p>
+                                <div className='plan-progress__bar'>
+                                    <div className='plan-progress__fill' style={{ width: `${progress}%` }} />
+                                </div>
+                                <p className='plan-progress__text'>{doneTasks} of {totalTasks} tasks done ({progress}%)</p>
+                            </div>
+
+                            <div className='sidebar-divider' />
+                        </>
+                    )}
 
                     {/* Skill Gaps */}
                     <div className='skill-gaps'>

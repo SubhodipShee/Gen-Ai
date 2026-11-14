@@ -63,3 +63,21 @@ export const generateResumePdf = async ({ interviewReportId }) => {
     return response.data
 }
 
+/**
+ * @description Service to delete an interview report by interviewId.
+ */
+export const deleteInterviewReport = async (interviewId) => {
+    const response = await api.delete(`/api/interview/report/${interviewId}`)
+
+    return response.data
+}
+
+/**
+ * @description Service to tick or untick a task of the preparation plan.
+ */
+export const updatePlanProgress = async ({ interviewId, dayIndex, taskIndex, done }) => {
+    const response = await api.patch(`/api/interview/report/${interviewId}/progress`, { dayIndex, taskIndex, done })
+
+    return response.data
+}
+

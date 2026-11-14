@@ -98,6 +98,10 @@ const preparationPlanSchema = new mongoose.Schema({
     tasks: [{
         type: String,
         required: [true,"Task is required"]
+    }],
+    // positions of the tasks the user has ticked off, e.g. [0, 2]
+    completedTasks: [{
+        type: Number
     }]
 })
 
@@ -134,6 +138,13 @@ const interviewReportSchema = new mongoose.Schema({
     // saved html of the AI tailored resume, so the resume PDF needs Gemini only once
     resumeHtml: {
         type: String
+    },
+    // percentage of preparation plan tasks completed
+    progress: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: 0
     }
 },{
     timestamps: true

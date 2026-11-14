@@ -26,7 +26,8 @@ In today's fast-evolving tech landscape, this project stands at the intersection
   - **Behavioral Questions**: STAR-method-based questions to prepare for competency rounds.
   - **Skill Gaps**: Identification of areas that need improvement.
   - **7-Day Prep Plan**: A day-by-day roadmap to get you interview-ready.
-- **History Tracking**: Save and review your previous interview preparation reports.
+- **History Tracking**: Save and review your previous interview preparation reports, or delete the ones you don't need.
+- **Prep Progress**: Tick off the 7-day plan tasks and see your progress on the report and in the history list.
 - **Resume Optimization**: (Coming Soon) AI-assisted resume generation.
 
 ## 🛠️ Tech Stack
@@ -128,6 +129,8 @@ npm run dev
 - `POST /api/interview` - Generate a report (multipart: `jobDescription`, plus a `resume` PDF and/or `selfDescription`)
 - `GET /api/interview` - Get all past reports of the user
 - `GET /api/interview/report/:interviewId` - Get specific report details
+- `DELETE /api/interview/report/:interviewId` - Delete a report
+- `PATCH /api/interview/report/:interviewId/progress` - Tick or untick a preparation plan task (`dayIndex`, `taskIndex`, `done`)
 - `POST /api/interview/resume/pdf/:interviewReportId` - Generate a tailored resume PDF
 
 ## 🤝 Contributing

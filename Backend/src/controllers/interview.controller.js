@@ -124,4 +124,74 @@ async function generateResumePdfController(req, res) {
     res.send(pdfBuffer)
 }
 
-module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController}
+/**
+ * @description Controller to delete an interview report of the logged in user
+ */
+async function deleteInterviewReportController(req, res) {
+    const { interviewId } = req.params
+
+    const interviewReport = await interviewReportModel.findOneAndDelete({ _id: interviewId, user: req.user.id })
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found"
+        })
+    }
+
+    res.status(200).json({
+        message: "Interview report deleted successfully"
+    })
+}
+
+/**
+ * @description Controller to tick or untick a task of the preparation plan and update the progress percentage
+ */
+async function updatePlanProgressController(req, res) {
+    const { interviewId } = req.params
+    const { dayIndex, taskIndex, done } = req.body
+
+    if (!Number.isInteger(dayIndex) || !Number.isInteger(taskIndex) || typeof done !== "boolean") {
+        return res.status(400).json({
+            message: "dayIndex, taskIndex and done are required"
+        })
+    }
+
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id }).select("preparationPlan").lean()
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found"
+        })
+    }
+
+    const day = interviewReport.preparationPlan[dayIndex]
+
+    if (!day || taskIndex < 0 || taskIndex >= day.tasks.length) {
+        return res.status(400).json({
+            message: "Task not found in the preparation plan"
+        })
+    }
+
+    // $addToSet / $pull change only this one list, so quick clicks on different tasks don't overwrite each other
+    const taskPath = `preparationPlan.${dayIndex}.completedTasks`
+    const updatedReport = await interviewReportModel.findOneAndUpdate(
+        { _id: interviewId, user: req.user.id },
+        done ? { $addToSet: { [taskPath]: taskIndex } } : { $pull: { [taskPath]: taskIndex } },
+        { new: true }
+    ).select("preparationPlan").lean()
+
+    // progress = ticked tasks out of all tasks
+    const totalTasks = updatedReport.preparationPlan.reduce((sum, d) => sum + d.tasks.length, 0)
+    const doneTasks = updatedReport.preparationPlan.reduce((sum, d) => sum + (d.completedTasks?.length || 0), 0)
+    const progress = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0
+
+    await interviewReportModel.updateOne({ _id: interviewId }, { progress })
+
+    res.status(200).json({
+        message: "Progress updated successfully",
+        preparationPlan: updatedReport.preparationPlan,
+        progress
+    })
+}
+
+module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController, deleteInterviewReportController, updatePlanProgressController}

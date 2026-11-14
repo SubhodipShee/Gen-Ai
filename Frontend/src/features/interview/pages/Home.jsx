@@ -1,6 +1,6 @@
 import React,{useState, useRef} from 'react';
 import '../style/home.scss';
-import { LuUpload, LuLogOut } from 'react-icons/lu';
+import { LuUpload, LuLogOut, LuTrash2 } from 'react-icons/lu';
 import {useInterview} from "../hooks/useInterview"
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../auth/Hooks/useAuth';
@@ -9,7 +9,7 @@ import { useAuth } from '../../auth/Hooks/useAuth';
 
 const Home = () => {
 
-    const { loading, generateReport,reports } = useInterview()
+    const { loading, generateReport, reports, deleteReport } = useInterview()
     const { handleLogout, user } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
@@ -22,6 +22,16 @@ const Home = () => {
         const success = await handleLogout()
         if (success) {
             navigate('/login')
+        }
+    }
+
+    const onDeleteReport = async (e, interviewId) => {
+        e.stopPropagation() // don't open the report when clicking delete
+        if (!confirm("Delete this interview plan? This cannot be undone.")) return
+
+        const success = await deleteReport(interviewId)
+        if (!success) {
+            alert("Could not delete the interview plan, please try again")
         }
     }
 
@@ -177,9 +187,15 @@ const Home = () => {
                     <ul className='reports-list'>
                         {reports.map(report => (
                             <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
-                                <h3>{report.title || 'Untitled Position'}</h3>
+                                <div className='report-item__header'>
+                                    <h3>{report.title || 'Untitled Position'}</h3>
+                                    <button className='report-item__delete' onClick={(e) => onDeleteReport(e, report._id)} title='Delete'>
+                                        <LuTrash2 />
+                                    </button>
+                                </div>
                                 <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
                                 <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
+                                <p className='report-progress'>Prep Progress: {report.progress || 0}%</p>
                             </li>
                         ))}
                     </ul>

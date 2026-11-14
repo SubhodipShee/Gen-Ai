@@ -24,6 +24,22 @@ interviewRouter.get("/report/:interviewId", authMiddleware.authUser, interviewCo
 
 
 /**
+ * @route DELETE /api/interview/report/:interviewId
+ * @desc Delete the interview report of the logged in user
+ * @access Private
+ */
+interviewRouter.delete("/report/:interviewId", authMiddleware.authUser, interviewController.deleteInterviewReportController)
+
+
+/**
+ * @route PATCH /api/interview/report/:interviewId/progress
+ * @desc Tick or untick a task of the preparation plan, expects dayIndex, taskIndex and done in the request body
+ * @access Private
+ */
+interviewRouter.patch("/report/:interviewId/progress", authMiddleware.authUser, interviewController.updatePlanProgressController)
+
+
+/**
  * @route GET /api/interview
  * @desc Get all the interview reports of logged in user
  * @access Private
