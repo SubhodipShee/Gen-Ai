@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import '../style/interview.scss'
 import { useInterview } from "../hooks/useInterview"
 import { useVoicePractice } from "../hooks/useVoicePractice"
-import { Link, useParams } from 'react-router'
-import { LuMic, LuFileText } from 'react-icons/lu'
+import { useAuth } from '../../auth/Hooks/useAuth'
+import { Link, useNavigate, useParams } from 'react-router'
+import { LuMic, LuFileText, LuArrowLeft, LuLogOut } from 'react-icons/lu'
 import Loader from '../../../components/Loader'
 
 
@@ -173,9 +174,19 @@ const Interview = () => {
     const [ notFoundId, setNotFoundId ] = useState(null)
     const [ preparingSheet, setPreparingSheet ] = useState(false)
     const [ preparingResume, setPreparingResume ] = useState(false)
-    const { report, getReportById, loading, getResumePdf, getCheatSheetPdf, togglePlanTask, reviewQuestion } = useInterview()
+    const { report, getReportById, loading, getResumePdf, getCheatSheetPdf, togglePlanTask, reviewQuestion, clearInterviewData } = useInterview()
+    const { handleLogout } = useAuth()
     const { interviewId } = useParams()
+    const navigate = useNavigate()
     const notFound = notFoundId === interviewId
+
+    const onLogout = async () => {
+        const success = await handleLogout()
+        if (success) {
+            clearInterviewData()
+            navigate('/login')
+        }
+    }
 
     useEffect(() => {
         if (interviewId) {
@@ -274,6 +285,18 @@ const Interview = () => {
 
                 {/* ── Left Nav ── */}
                 <nav className='interview-nav'>
+                    {/* back to the plans list and logout, on every report page */}
+                    <div className='interview-nav__top'>
+                        <Link to="/" className='interview-nav__back'>
+                            <LuArrowLeft />
+                            My plans
+                        </Link>
+                        <button className='interview-nav__logout' onClick={onLogout} title='Logout'>
+                            <LuLogOut />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+
                     <div className="nav-content">
                         <p className='interview-nav__label'>Sections</p>
                         {NAV_ITEMS.map(item => (

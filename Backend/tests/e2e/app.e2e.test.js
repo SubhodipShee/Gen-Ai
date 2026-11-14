@@ -177,9 +177,27 @@ describe("app in the browser", () => {
         await page.setViewport({ width: 1280, height: 900 })
     })
 
+    it("goes back to the plans and logs out from a report page", async () => {
+        await page.goto(`${APP}/interview/${reportId}`, { waitUntil: "networkidle0" })
+        await page.waitForSelector(".interview-nav__back")
+        await page.click(".interview-nav__back")
+        await page.waitForSelector(".home-page")
+        assert.equal(page.url(), `${APP}/`)
+
+        await page.goto(`${APP}/interview/${reportId}`, { waitUntil: "networkidle0" })
+        await page.waitForSelector(".interview-nav__logout")
+        await page.click(".interview-nav__logout")
+        await page.waitForSelector(".form-container")
+        assert.ok(page.url().endsWith("/login"))
+
+        // the report is not kept in memory for the next person on this browser
+        await page.goto(`${APP}/interview/${reportId}`, { waitUntil: "networkidle0" })
+        await page.waitForSelector(".form-container")
+        assert.ok(page.url().endsWith("/login"), "a logged out visitor is sent to login")
+    })
+
     it("shows the server's reason after a wrong password and keeps the email", async () => {
-        await page.goto(APP, { waitUntil: "networkidle0" })
-        await page.click(".logout-btn")
+        await page.goto(`${APP}/login`, { waitUntil: "networkidle0" })
         await page.waitForSelector(".form-container")
         await page.type("#email", email)
         await page.type("#password", "wrong-password")

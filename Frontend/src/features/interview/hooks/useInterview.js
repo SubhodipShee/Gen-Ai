@@ -183,6 +183,13 @@ export const useInterview = () => {
         }
     }
 
+    // forget the reports in memory on logout, so the next account on this browser never sees them
+    const clearInterviewData = () => {
+        setReport(null)
+        setReports([])
+        setInsights(null)
+    }
+
      // the single report is fetched by the Interview page itself (it needs the result to show "not found"),
      // so here we only fetch the list and the insights for the Home page
      useEffect(() => {
@@ -193,6 +200,6 @@ export const useInterview = () => {
     }, [ interviewId ])
 
 
-    return { loading, report, reports, insights, generateReport, getReportById, getReports, getResumePdf, getCheatSheetPdf, deleteReport, togglePlanTask, reviewQuestion }
+    return { loading, report, reports, insights, generateReport, getReportById, getReports, getResumePdf, getCheatSheetPdf, deleteReport, togglePlanTask, reviewQuestion, clearInterviewData }
 
 }

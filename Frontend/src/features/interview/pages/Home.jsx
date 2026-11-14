@@ -26,7 +26,7 @@ const WAITING_TIPS = [
 
 const Home = () => {
 
-    const { loading, generateReport, reports, insights, deleteReport } = useInterview()
+    const { loading, generateReport, reports, insights, deleteReport, clearInterviewData } = useInterview()
     const { handleLogout, user } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
@@ -38,6 +38,7 @@ const Home = () => {
     const onLogout = async () => {
         const success = await handleLogout()
         if (success) {
+            clearInterviewData()
             navigate('/login')
         }
     }
