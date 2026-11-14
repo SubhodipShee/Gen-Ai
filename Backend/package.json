@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "postinstall": "puppeteer browsers install chrome",
     "test": "node --test --test-concurrency=1 \"tests/*.test.js\"",
     "test:e2e": "node --test \"tests/e2e/*.test.js\"",
     "dev": "npx nodemon server.js"

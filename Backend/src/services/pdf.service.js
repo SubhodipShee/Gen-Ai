@@ -1,10 +1,22 @@
 const puppeteer = require("puppeteer");
 
 
+// starts Chrome; some hosts (like Render) do not allow Chrome's sandbox, then it starts without it
+// (that is safe here because JavaScript is turned off for every page we render)
+const launchBrowser = async () => {
+  try {
+    return await puppeteer.launch();
+  } catch (error) {
+    if (!/sandbox/i.test(error.message)) throw error;
+    console.warn("Chrome sandbox is not available on this server, starting Chrome without it");
+    return puppeteer.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+  }
+};
+
 // using puppeteer to turn html into an A4 pdf
 
 const generatePdfFromHtml = async (htmlContent) => {
-  const browser = await puppeteer.launch();
+  const browser = await launchBrowser();
   try {
     const page = await browser.newPage();
     // the html contains text from resumes and AI, so no script inside it is allowed to run on the server
