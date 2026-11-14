@@ -177,18 +177,18 @@ const Interview = () => {
     }, [ interviewId ])
 
     const onDownloadResume = async () => {
-        const success = await getResumePdf(interviewId)
+        const { success, message } = await getResumePdf(interviewId)
         if (!success) {
-            alert("Could not create the resume PDF, please try again")
+            alert(message || "Could not create the resume PDF, please try again")
         }
     }
 
     const onDownloadCheatSheet = async () => {
         setPreparingSheet(true)
-        const success = await getCheatSheetPdf(interviewId)
+        const { success, message } = await getCheatSheetPdf(interviewId)
         setPreparingSheet(false)
         if (!success) {
-            alert("Could not create the cheat sheet, please try again")
+            alert(message || "Could not create the cheat sheet, please try again")
         }
     }
 

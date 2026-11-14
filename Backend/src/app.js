@@ -1,16 +1,26 @@
 const express = require("express")
 const cookieParser = require("cookie-parser")
 const cors = require("cors")
+const helmet = require("helmet")
+const { apiLimiter } = require("./middleware/rateLimit.middleware")
 
 const app = express()
 
+// Render has one proxy in front of the app, this gives the real visitor IP to the rate limits
+app.set("trust proxy", 1)
 
+// security headers, cross-origin is allowed so the Netlify frontend can still download the PDFs
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }))
 app.use(cookieParser())
-app.use(express.json())
+app.use(express.json({ limit: "100kb" }))
 app.use(cors({
     origin: process.env.CLIENT_URL || "https://interviewtrained.netlify.app",  // frontend URL from env, deployed frontend URL as fallback
     credentials: true
 }))
+
+// after cors, so the "too many requests" message also reaches the browser
+app.use("/api", apiLimiter)
+
 // require all the routes here
 const authRouter = require("./routes/auth.routes")
 const interviewRouter = require("./routes/interview.routes")

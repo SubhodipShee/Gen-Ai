@@ -2,6 +2,7 @@ const express = require('express')
 const authMiddleware = require("../middleware/auth.middleware")
 const interviewController = require("../controllers/interview.controller")
 const upload = require("../middleware/file.middleware")
+const { generateLimiter, reportLimit, pdfLimiter } = require("../middleware/rateLimit.middleware")
 
 
 const interviewRouter = express.Router()
@@ -10,9 +11,9 @@ const interviewRouter = express.Router()
 /**
  * @route POST /api/interview
  * @desc Create a new interview report on the basis of the provided user self description and the job description
- * @access Private
+ * @access Private (limited to 5 reports per hour and 20 per day per user, checked before the file upload is read)
  */
-interviewRouter.post("/", authMiddleware.authUser, upload.single("resume"), interviewController.generateInterviewReportController) 
+interviewRouter.post("/", authMiddleware.authUser, generateLimiter, reportLimit, upload.single("resume"), interviewController.generateInterviewReportController)
 
 
 /**
@@ -67,14 +68,14 @@ interviewRouter.get("/", authMiddleware.authUser, interviewController.getAllInte
  * @description generate resume pdf on the basis of user self description, resume content and job description.
  * @access private
  */
-interviewRouter.post("/resume/pdf/:interviewReportId", authMiddleware.authUser, interviewController.generateResumePdfController)
+interviewRouter.post("/resume/pdf/:interviewReportId", authMiddleware.authUser, pdfLimiter, interviewController.generateResumePdfController)
 
 /**
  * @route POST /api/interview/cheatsheet/pdf/:interviewReportId
  * @description generate a one page interview cheat sheet pdf from the saved report (no AI call).
  * @access private
  */
-interviewRouter.post("/cheatsheet/pdf/:interviewReportId", authMiddleware.authUser, interviewController.generateCheatSheetPdfController)
+interviewRouter.post("/cheatsheet/pdf/:interviewReportId", authMiddleware.authUser, pdfLimiter, interviewController.generateCheatSheetPdfController)
 
 
 

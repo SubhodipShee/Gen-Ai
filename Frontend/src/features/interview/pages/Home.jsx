@@ -59,12 +59,12 @@ const Home = () => {
             return alert("Resume must be 3MB or smaller")
         }
 
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        if (data && data._id) {
-            navigate(`/interview/${data._id}`)
+        const { report, message } = await generateReport({ jobDescription, selfDescription, resumeFile })
+        if (report?._id) {
+            navigate(`/interview/${report._id}`)
         } else {
             setResumeName("") // the file input is reset after the loading screen, so the file has to be picked again
-            alert("Could not generate your interview plan, please try again")
+            alert(message || "Could not generate your interview plan, please try again")
         }
     }
 

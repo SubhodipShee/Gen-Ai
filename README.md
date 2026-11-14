@@ -100,8 +100,17 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 GOOGLE_GENAI_API_KEY=your_gemini_api_key
 CLIENT_URL=http://localhost:5173
+GEMINI_DAILY_LIMIT=20
 ```
 `CLIENT_URL` is the frontend URL allowed by CORS (defaults to the deployed Netlify URL). Use `NODE_ENV=production` only on the deployed server, it makes the auth cookie `Secure` and `SameSite=None`.
+
+`GEMINI_DAILY_LIMIT` is the most Gemini calls the whole app makes per day (default 20, resets at midnight Pacific time like Google's free quota). Set it a bit below your free "requests per day" shown in Google AI Studio, so the free API key never goes over its limit.
+
+**Limits** (to protect the free Gemini quota and stop abuse):
+- Report generation: 5 per hour and 20 per day per user (counted from saved reports, so a restart does not reset them)
+- Resume and cheat sheet PDFs: 20 per hour per user
+- Login: 10 wrong attempts per 15 minutes per IP; register: 10 per hour per IP
+- All API requests: 300 per 15 minutes per IP
 Start the backend server:
 ```bash
 npm run dev

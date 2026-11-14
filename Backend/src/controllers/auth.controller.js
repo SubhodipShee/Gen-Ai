@@ -17,6 +17,15 @@ async function registerUserController(req, res) {
         return res.status(400).json({ message: "Please provide username, email and password" })
     }
 
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+        return res.status(400).json({ message: "Please enter a valid email" })
+    }
+
+    // only for new accounts, existing users can still log in with their old password
+    if (typeof password !== "string" || password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" })
+    }
+
     const isUserAlreadyExists = await userModel.findOne({ 
         $or: [{username},{email}]
     })

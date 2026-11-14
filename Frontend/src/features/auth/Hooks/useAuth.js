@@ -8,32 +8,34 @@ export const useAuth = () => {
     const context =useContext(AuthContext)
     const { user, setUser, loading, setLoading } = context
 
+    // returns { success, message }, message is the reason from the server when it fails
     const handleLogin = async({email, password}) => {
         setLoading(true)
         try{
             const data = await login({email, password}) // call login api from auth.api.js
-             if (!data) return false
+            if (!data?.user) return { success: false, message: data?.message }
             setUser(data.user)
-            return true   
-            
-        }catch(error){
-            return false
+            return { success: true }
+
+        }catch{
+            return { success: false }
 
         }finally{
             setLoading(false)
         }
-        
+
     }
 
+    // returns { success, message }, message is the reason from the server when it fails
     const handleRegister = async({username, email, password}) => {
         setLoading(true)
         try{
             const data = await register({username, email, password}) // call register api from auth.api.js
-            if (!data) return false
+            if (!data?.user) return { success: false, message: data?.message }
             setUser(data.user)
-            return true
-        }catch(error){
-            return false
+            return { success: true }
+        }catch{
+            return { success: false }
         }
         finally{
             setLoading(false)

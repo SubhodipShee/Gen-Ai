@@ -1,10 +1,50 @@
 const { GoogleGenAI, ThinkingLevel } = require("@google/genai");
 const { z } = require("zod");
+const aiUsageModel = require("../models/aiUsage.model");
 
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
+
+// the whole app calls Gemini at most this many times per day, so the free API key never goes over its limit
+// change it on Render with GEMINI_DAILY_LIMIT (your real free limit is shown in Google AI Studio)
+const GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT) || 20;
+
+const limitError = (message) => {
+  const error = new Error(message);
+  error.status = 429;
+  return error;
+};
+
+// counts one Gemini call for today (Pacific time, when Google resets the free quota)
+// and stops before the daily limit is passed
+const useGeminiQuota = async () => {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  const usage = await aiUsageModel.findOneAndUpdate(
+    { date: today },
+    { $inc: { count: 1 } },
+    { upsert: true, returnDocument: "after" },
+  );
+
+  if (usage.count > GEMINI_DAILY_LIMIT) {
+    throw limitError("The free AI limit for today is used up, please try again tomorrow");
+  }
+};
+
+// every Gemini call goes through here: checks the daily limit first,
+// and turns Google's "limit reached" error (429) into a friendly message
+const callGemini = async (request) => {
+  await useGeminiQuota();
+  try {
+    return await ai.models.generateContent(request);
+  } catch (error) {
+    if (error.status === 429) {
+      throw limitError("The free AI limit is reached right now, please try again later");
+    }
+    throw error;
+  }
+};
 
 // Define the raw JSON schema directly — skip zodToJsonSchema entirely
 const interviewReportJsonSchema = {
@@ -208,7 +248,7 @@ ${selfDescription || "Not provided"}
 **title**: Create a concise title summarizing the candidate's fit and key focus areas for preparation.
 `;
 
-  const response = await ai.models.generateContent({
+  const response = await callGemini({
     model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
@@ -247,7 +287,7 @@ const generateResumeHtml = async ({
                         The content should be ATS friendly, i.e. it should be easily parsable by ATS systems without losing important information.
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.`;
 
-  const response = await ai.models.generateContent({
+  const response = await callGemini({
     model: "gemini-3-flash-preview",
     contents: prompt,
     config: {

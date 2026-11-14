@@ -16,12 +16,12 @@ const Register = () => {
 
   const handleSubmit = async(e) => {
         e.preventDefault();
-        const success = await handleRegister({ username, email, password });
+        const { success, message } = await handleRegister({ username, email, password });
 
         if (success) {
             navigate("/");
         } else {
-            alert("Registration failed. The username or email may already be in use.")
+            alert(message || "Registration failed, please try again.")
         }
     }
     
@@ -39,20 +39,23 @@ const Register = () => {
 
                 <div className="input-group">
                     <label htmlFor="username">Username</label>
-                    <input 
+                    <input
+                      value={username}
                       onChange={(e)=> {setUsername(e.target.value)}}
                       type="text" id="username" name="username" placeholder='Enter Username' required />
                 </div>
               
                 <div className="input-group">
                     <label htmlFor="email">Email</label>
-                    <input 
+                    <input
+                    value={email}
                     onChange={(e)=>{setEmail(e.target.value)}}
                     type="email" id="email" name="email" placeholder='Enter Email' required />
                 </div>
                 <div className="input-group">
                     <label htmlFor="password">Password</label>
-                    <input 
+                    <input
+                    value={password}
                     onChange={(e)=>{setPassword(e.target.value)}}
                     type="password" id="password" name="password" placeholder='Enter Password' required />
                 </div>

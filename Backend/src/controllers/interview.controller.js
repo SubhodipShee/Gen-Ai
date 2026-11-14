@@ -54,8 +54,9 @@ async function generateInterviewReportController(req, res) {
         })
     } catch (error) {
         console.error('Error generating interview report:', error)
-        res.status(500).json({ 
-            message: "Error generating interview report",
+        // errors with a status (like the 429 AI limit) send their own friendly message
+        res.status(error.status || 500).json({
+            message: error.status ? error.message : "Error generating interview report",
             error: error.message
         })
     }
@@ -203,7 +204,7 @@ async function updatePlanProgressController(req, res) {
     const updatedReport = await interviewReportModel.findOneAndUpdate(
         { _id: interviewId, user: req.user.id },
         done ? { $addToSet: { [taskPath]: taskIndex } } : { $pull: { [taskPath]: taskIndex } },
-        { new: true }
+        { returnDocument: "after" }
     ).select("preparationPlan").lean()
 
     // progress = ticked tasks out of all tasks

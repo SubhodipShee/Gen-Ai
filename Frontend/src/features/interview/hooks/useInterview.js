@@ -17,6 +17,19 @@ const downloadPdf = (data, fileName) => {
     setTimeout(() => window.URL.revokeObjectURL(url), 1000)
 }
 
+// the reason sent by the server (e.g. "too many reports"), pdf requests get it back as a blob
+const getErrorMessage = async (error) => {
+    const data = error.response?.data
+    if (data instanceof Blob) {
+        try {
+            return JSON.parse(await data.text()).message
+        } catch {
+            return undefined
+        }
+    }
+    return data?.message
+}
+
 
 export const useInterview = () => {
 
@@ -29,16 +42,17 @@ export const useInterview = () => {
 
     const { loading, setLoading, report, setReport, reports, setReports, insights, setInsights } = context
 
+    // returns { report } or { message } with the reason from the server
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
         setLoading(true)
         let response = null
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
             setReport(response.interviewReport)
-            return response.interviewReport
+            return { report: response.interviewReport }
         } catch (error) {
             console.error('Error generating report:', error)
-            return null
+            return { message: await getErrorMessage(error) }
         } finally {
             setLoading(false)
         }
@@ -76,31 +90,33 @@ export const useInterview = () => {
         return response?.interviewReports || []
     }
 
+    // returns { success, message }
     const getResumePdf = async (interviewReportId) => {
         setLoading(true)
         let response = null
         try {
             response = await generateResumePdf({ interviewReportId })
             downloadPdf(response, `resume_${interviewReportId}.pdf`)
-            return true
+            return { success: true }
         }
         catch (error) {
             console.log(error)
-            return false
+            return { success: false, message: await getErrorMessage(error) }
         } finally {
             setLoading(false)
         }
     }
 
     // the cheat sheet is quick (no AI), so no page-wide loading, the page shows its own "Preparing..." text
+    // returns { success, message }
     const getCheatSheetPdf = async (interviewReportId) => {
         try {
             const response = await generateCheatSheetPdf({ interviewReportId })
             downloadPdf(response, `cheatsheet_${interviewReportId}.pdf`)
-            return true
+            return { success: true }
         } catch (error) {
             console.log(error)
-            return false
+            return { success: false, message: await getErrorMessage(error) }
         }
     }
 

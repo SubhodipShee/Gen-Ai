@@ -17,7 +17,8 @@ export async function register({ username, email, password }) {
 
     } catch (err) {
 
-        console.log(err)
+        console.log(err.response?.data || err.message)
+        return { message: err.response?.data?.message } // no user, but the reason from the server (e.g. too many attempts)
 
     }
 
@@ -35,7 +36,7 @@ export async function login({ email, password }) {
 
     } catch (err) {
         console.log(err.response?.data || err.message)
-        return null
+        return { message: err.response?.data?.message } // no user, but the reason from the server (e.g. too many attempts)
     }
 
 }

@@ -15,12 +15,12 @@ const Login = () => {
     // Temporary function to prevent form submission
     const handleSubmit = async(e) => {
         e.preventDefault()
-        const success = await handleLogin({ email, password })
+        const { success, message } = await handleLogin({ email, password })
 
         if (success) {
             navigate("/")
         } else {
-            alert("Invalid email or password")
+            alert(message || "Invalid email or password")
         }
     }
 
@@ -36,13 +36,15 @@ const Login = () => {
             <form onSubmit={handleSubmit}>
                 <div className="input-group">
                     <label htmlFor="email">Email</label>
-                    <input 
+                    <input
+                        value={email}
                         onChange={(e)=> {setEmail(e.target.value)}}
                         type="email" id="email" name="email" placeholder='Enter Email' required />
                 </div>
                 <div className="input-group">
                     <label htmlFor="password">Password</label>
-                    <input 
+                    <input
+                        value={password}
                         onChange={(e)=> {setPassword(e.target.value)}}
                         type="password" id="password" name="password" placeholder='Enter Password' required />
                 </div>
