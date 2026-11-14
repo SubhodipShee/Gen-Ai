@@ -260,6 +260,124 @@ $severity-low: #3fb950;
             border: 1px solid rgba(#3fb950, 0.2);
         }
     }
+
+    // ── confidence check & review ──
+    &__status {
+        flex-shrink: 0;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 2rem;
+        margin-top: 2px;
+        border: 1px solid;
+
+        &--knew {
+            color: $severity-low;
+            border-color: rgba($severity-low, 0.3);
+        }
+
+        &--missed {
+            color: $severity-high;
+            border-color: rgba($severity-high, 0.3);
+        }
+    }
+
+    &__confidence {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+
+        p {
+            margin: 0;
+            font-size: 0.835rem;
+            color: lighten($text-muted, 15%);
+        }
+    }
+
+    &__levels {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    &__level,
+    &__skip,
+    &__mark {
+        font-family: $font-stack;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 0.4rem;
+        border: 1px solid $border-color;
+        background-color: $bg-input;
+        color: $text-primary;
+        cursor: pointer;
+        transition: border-color 0.2s, color 0.2s;
+
+        &:hover {
+            border-color: $accent;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+    }
+
+    &__level {
+        width: 2.2rem;
+        height: 2.2rem;
+    }
+
+    &__skip {
+        padding: 0 0.9rem;
+        color: $text-muted;
+    }
+
+    &__hint {
+        font-size: 0.72rem;
+        color: $text-muted;
+    }
+
+    &__review {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        padding-top: 0.75rem;
+        border-top: 1px dashed $border-color;
+        font-size: 0.8rem;
+        color: $text-muted;
+    }
+
+    &__mark {
+        padding: 0.4rem 0.9rem;
+
+        &--knew:hover {
+            border-color: $severity-low;
+            color: $severity-low;
+        }
+
+        &--missed:hover {
+            border-color: $severity-high;
+            color: $severity-high;
+        }
+    }
+
+    &__next {
+        margin-left: auto;
+        font-size: 0.75rem;
+    }
+}
+
+.revise-empty {
+    margin: 0;
+    padding: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: $text-muted;
+    background-color: $bg-panel;
+    border: 1px dashed $border-color;
+    border-radius: 0.6rem;
 }
 
 // ── Road Map ──────────────────────────────────────────────────────────────────
@@ -485,6 +603,54 @@ $severity-low: #3fb950;
         margin: 0;
         font-size: 0.75rem;
         color: $text-muted;
+    }
+}
+
+// Blind Spots
+.blind-spots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &__label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: $text-muted;
+        margin: 0;
+    }
+
+    &__empty {
+        margin: 0;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        color: $text-muted;
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        li {
+            font-size: 0.775rem;
+            line-height: 1.4;
+            color: $severity-high;
+            padding: 0.35rem 0.55rem;
+            border-radius: 0.4rem;
+            background-color: rgba($severity-high, 0.08);
+            border: 1px solid rgba($severity-high, 0.2);
+            cursor: pointer;
+            // show at most 2 lines of the question
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     }
 }
 

@@ -32,20 +32,41 @@ const mongoose = require('mongoose');
  *                     }]
  */
 
+// Practice fields used by both question schemas (confidence check and revision)
+const questionReviewFields = {
+    confidence: {          // how sure the user was before reading the answer, 1 to 5
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    knewIt: {              // after reading the answer: did the user really know it
+        type: Boolean
+    },
+    box: {                 // 0 = didn't know, 1 = knew once, 2 = knew twice or more
+        type: Number,
+        min: 0,
+        max: 2
+    },
+    nextReviewAt: {        // when the question comes back in "Revise Today"
+        type: Date
+    }
+}
+
  // Define the technical question schema
 const technicalQuestionSchema = new mongoose.Schema({
-    question: { 
-        type: String, 
-        required: [true,"Technical question is required"] 
+    question: {
+        type: String,
+        required: [true,"Technical question is required"]
     },
-    intention: { 
-        type: String, 
-        required: [true,"Intention is required"] 
+    intention: {
+        type: String,
+        required: [true,"Intention is required"]
     },
-    answer: { 
-        type: String, 
-        required: [true,"Answer is required"] 
-    }
+    answer: {
+        type: String,
+        required: [true,"Answer is required"]
+    },
+    ...questionReviewFields
 },{
     _id: false
 }
@@ -61,10 +82,11 @@ const behavioralQuestionSchema = new mongoose.Schema({
         type: String, 
         required: [true,"Intention is required"] 
     },
-    answer: { 
-        type: String, 
-        required: [true,"Answer is required"] 
-    }
+    answer: {
+        type: String,
+        required: [true,"Answer is required"]
+    },
+    ...questionReviewFields
 },{
     _id: false
 })

@@ -1,4 +1,4 @@
-import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf, deleteInterviewReport, updatePlanProgress} from "../services/interview.api"
+import {getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePdf, deleteInterviewReport, updatePlanProgress, updateQuestionReview, getInterviewInsights} from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
@@ -13,7 +13,7 @@ export const useInterview = () => {
         throw new Error('useInterview must be used within a InterviewProvider')
     }
 
-    const { loading, setLoading, report, setReport, reports, setReports } = context
+    const { loading, setLoading, report, setReport, reports, setReports, insights, setInsights } = context
 
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
         setLoading(true)
@@ -94,6 +94,7 @@ export const useInterview = () => {
             if (report?._id === interviewId) {
                 setReport(null)
             }
+            getInsights() // the deleted report's skill gaps should not count anymore
             return true
         } catch (error) {
             console.log(error)
@@ -127,15 +128,38 @@ export const useInterview = () => {
         }
     }
 
+    const getInsights = async () => {
+        try {
+            const response = await getInterviewInsights()
+            setInsights({ totalReports: response.totalReports, skillGaps: response.skillGaps })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    // save "I knew it / I didn't" (and how sure the user was) for a question, type is "technical" or "behavioral"
+    const reviewQuestion = async ({ type, index, confidence, knewIt }) => {
+        try {
+            const response = await updateQuestionReview({ interviewId: report._id, type, index, confidence, knewIt })
+            const field = type === "technical" ? "technicalQuestions" : "behavioralQuestions"
+            setReport(prev => ({ ...prev, [field]: prev[field].map((q, i) => i === index ? response.question : q) }))
+            return true
+        } catch (error) {
+            console.log(error)
+            return false
+        }
+    }
+
      // the single report is fetched by the Interview page itself (it needs the result to show "not found"),
-     // so here we only fetch the list for the Home page
+     // so here we only fetch the list and the insights for the Home page
      useEffect(() => {
         if (!interviewId) {
             getReports()
+            getInsights()
         }
     }, [ interviewId ])
 
 
-    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf, deleteReport, togglePlanTask }
+    return { loading, report, reports, insights, generateReport, getReportById, getReports, getResumePdf, deleteReport, togglePlanTask, reviewQuestion }
 
 }

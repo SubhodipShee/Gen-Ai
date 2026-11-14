@@ -40,6 +40,22 @@ interviewRouter.patch("/report/:interviewId/progress", authMiddleware.authUser, 
 
 
 /**
+ * @route PATCH /api/interview/report/:interviewId/question
+ * @desc Save the confidence check of a question and schedule its next revision, expects type, index, knewIt and optional confidence in the request body
+ * @access Private
+ */
+interviewRouter.patch("/report/:interviewId/question", authMiddleware.authUser, interviewController.updateQuestionReviewController)
+
+
+/**
+ * @route GET /api/interview/insights
+ * @desc Get the skill gaps that repeat across all the interview reports of the logged in user
+ * @access Private
+ */
+interviewRouter.get("/insights", authMiddleware.authUser, interviewController.getInterviewInsightsController)
+
+
+/**
  * @route GET /api/interview
  * @desc Get all the interview reports of logged in user
  * @access Private

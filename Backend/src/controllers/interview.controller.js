@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 const pdfParse = require("pdf-parse")
 const {generateInterviewReport, generateResumeHtml, generatePdfFromHtml} = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
@@ -194,4 +195,100 @@ async function updatePlanProgressController(req, res) {
     })
 }
 
-module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController, deleteInterviewReportController, updatePlanProgressController}
+/**
+ * @description Controller to save the confidence check of a question and schedule when it comes back for revision
+ */
+async function updateQuestionReviewController(req, res) {
+    const { interviewId } = req.params
+    const { type, index, confidence, knewIt } = req.body
+
+    const validConfidence = confidence === undefined || confidence === null || (Number.isInteger(confidence) && confidence >= 1 && confidence <= 5)
+
+    if (![ "technical", "behavioral" ].includes(type) || !Number.isInteger(index) || typeof knewIt !== "boolean" || !validConfidence) {
+        return res.status(400).json({
+            message: "type, index and knewIt are required, confidence must be 1 to 5"
+        })
+    }
+
+    const field = type === "technical" ? "technicalQuestions" : "behavioralQuestions"
+
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewId, user: req.user.id }).select(field).lean()
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found"
+        })
+    }
+
+    const question = interviewReport[field][index]
+
+    if (!question) {
+        return res.status(400).json({
+            message: "Question not found"
+        })
+    }
+
+    // didn't know it -> back tomorrow, knew it -> 3 days, knew it again -> 7 days
+    const box = knewIt ? Math.min((question.box || 0) + 1, 2) : 0
+    const days = !knewIt ? 1 : box === 1 ? 3 : 7
+    const nextReviewAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+
+    const review = { confidence: confidence ?? null, knewIt, box, nextReviewAt }
+
+    await interviewReportModel.updateOne({ _id: interviewId, user: req.user.id }, {
+        $set: {
+            [`${field}.${index}.confidence`]: review.confidence,
+            [`${field}.${index}.knewIt`]: review.knewIt,
+            [`${field}.${index}.box`]: review.box,
+            [`${field}.${index}.nextReviewAt`]: review.nextReviewAt
+        }
+    })
+
+    res.status(200).json({
+        message: "Question review saved successfully",
+        question: { ...question, ...review }
+    })
+}
+
+/**
+ * @description Controller to find the skill gaps that repeat across all the interview reports of the user (Career Gap Radar)
+ */
+async function getInterviewInsightsController(req, res) {
+    const severityRank = { $switch: {
+        branches: [
+            { case: { $eq: [ "$skillGaps.severity", "high" ] }, then: 3 },
+            { case: { $eq: [ "$skillGaps.severity", "medium" ] }, then: 2 }
+        ],
+        default: 1
+    } }
+
+    // aggregate does not convert the id string by itself, so it is converted here
+    const skillGaps = await interviewReportModel.aggregate([
+        { $match: { user: new mongoose.Types.ObjectId(req.user.id) } },
+        { $unwind: "$skillGaps" },
+        { $group: {
+            _id: { $toLower: { $trim: { input: "$skillGaps.skill" } } }, // "Docker" and "docker " count as the same skill
+            skill: { $min: { $trim: { input: "$skillGaps.skill" } } }, // trimmed name, $min prefers the capitalised spelling ("Docker" over "docker")
+            reports: { $addToSet: "$_id" },
+            rank: { $max: severityRank }
+        } },
+        { $project: {
+            _id: 0,
+            skill: 1,
+            jobCount: { $size: "$reports" },
+            rank: 1
+        } },
+        { $sort: { jobCount: -1, rank: -1, skill: 1 } },
+        { $limit: 6 }
+    ])
+
+    const totalReports = await interviewReportModel.countDocuments({ user: req.user.id })
+
+    res.status(200).json({
+        message: "Interview insights retrieved successfully",
+        totalReports,
+        skillGaps: skillGaps.map(({ rank, ...gap }) => ({ ...gap, severity: rank === 3 ? "high" : rank === 2 ? "medium" : "low" }))
+    })
+}
+
+module.exports = {generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController, deleteInterviewReportController, updatePlanProgressController, updateQuestionReviewController, getInterviewInsightsController}

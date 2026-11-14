@@ -9,7 +9,7 @@ import { useAuth } from '../../auth/Hooks/useAuth';
 
 const Home = () => {
 
-    const { loading, generateReport, reports, deleteReport } = useInterview()
+    const { loading, generateReport, reports, insights, deleteReport } = useInterview()
     const { handleLogout, user } = useAuth()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
@@ -179,6 +179,28 @@ const Home = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Career Gap Radar: skill gaps that repeat across reports (needs at least 2 reports) */}
+            {insights?.totalReports >= 2 && insights.skillGaps.length > 0 && (
+                <section className='gap-radar'>
+                    <h2>What to Learn First</h2>
+                    <p className='gap-radar__sub'>Skill gaps that repeat across your {insights.totalReports} interview plans</p>
+                    <ul className='gap-radar__list'>
+                        {insights.skillGaps.map(gap => (
+                            <li key={gap.skill} className='gap-radar__item'>
+                                <div className='gap-radar__row'>
+                                    <span className='gap-radar__skill'>{gap.skill}</span>
+                                    <span className={`gap-radar__severity gap-radar__severity--${gap.severity}`}>{gap.severity}</span>
+                                    <span className='gap-radar__count'>missing in {gap.jobCount} of {insights.totalReports} jobs</span>
+                                </div>
+                                <div className='gap-radar__bar'>
+                                    <div className={`gap-radar__fill gap-radar__fill--${gap.severity}`} style={{ width: `${(gap.jobCount / insights.totalReports) * 100}%` }} />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
 
             {/* Recent Reports List */}
             {reports.length > 0 && (

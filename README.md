@@ -28,6 +28,8 @@ In today's fast-evolving tech landscape, this project stands at the intersection
   - **7-Day Prep Plan**: A day-by-day roadmap to get you interview-ready.
 - **History Tracking**: Save and review your previous interview preparation reports, or delete the ones you don't need.
 - **Prep Progress**: Tick off the 7-day plan tasks and see your progress on the report and in the history list.
+- **Career Gap Radar**: Shows which skill gaps repeat across all your target jobs, so you know what to learn first.
+- **Confidence Check & Revision**: Rate how sure you are before reading an answer, mark if you really knew it, and missed questions come back in "Revise Today" (next day, then 3 and 7 days). Questions you were sure about but got wrong show up as Blind Spots.
 - **Resume Optimization**: (Coming Soon) AI-assisted resume generation.
 
 ## 🛠️ Tech Stack
@@ -131,6 +133,8 @@ npm run dev
 - `GET /api/interview/report/:interviewId` - Get specific report details
 - `DELETE /api/interview/report/:interviewId` - Delete a report
 - `PATCH /api/interview/report/:interviewId/progress` - Tick or untick a preparation plan task (`dayIndex`, `taskIndex`, `done`)
+- `PATCH /api/interview/report/:interviewId/question` - Save a confidence check (`type`, `index`, `knewIt`, optional `confidence` 1-5) and schedule the next revision
+- `GET /api/interview/insights` - Skill gaps that repeat across all reports (Career Gap Radar)
 - `POST /api/interview/resume/pdf/:interviewReportId` - Generate a tailored resume PDF
 
 ## 🤝 Contributing

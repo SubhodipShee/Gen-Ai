@@ -9,30 +9,78 @@ const NAV_ITEMS = [
     { id: 'technical', label: 'Technical Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>) },
     { id: 'behavioral', label: 'Behavioral Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>) },
     { id: 'roadmap', label: 'Road Map', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>) },
+    { id: 'revise', label: 'Revise Today', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>) },
 ]
 
+const CONFIDENCE_LEVELS = [ 1, 2, 3, 4, 5 ]
+
 // ── Sub-components ────────────────────────────────────────────────────────────
-const QuestionCard = ({ item, index }) => {
+const QuestionCard = ({ item, index, label, onReview }) => {
     const [ open, setOpen ] = useState(false)
+    const [ revealed, setRevealed ] = useState(false) // the answer shows after the confidence check
+    const [ confidence, setConfidence ] = useState(null)
+    const [ saving, setSaving ] = useState(false)
+
+    const onPickConfidence = (level) => {
+        setConfidence(level)
+        setRevealed(true)
+    }
+
+    const onMark = async (knewIt) => {
+        setSaving(true)
+        await onReview({ confidence, knewIt })
+        setSaving(false)
+    }
+
+    const reviewed = typeof item.knewIt === 'boolean'
+
     return (
         <div className='q-card'>
             <div className='q-card__header' onClick={() => setOpen(o => !o)}>
-                <span className='q-card__index'>Q{index + 1}</span>
+                <span className='q-card__index'>{label || `Q${index + 1}`}</span>
                 <p className='q-card__question'>{item.question}</p>
+                {reviewed && (
+                    <span className={`q-card__status ${item.knewIt ? 'q-card__status--knew' : 'q-card__status--missed'}`}>
+                        {item.knewIt ? 'Knew it' : 'Revise'}
+                    </span>
+                )}
                 <span className={`q-card__chevron ${open ? 'q-card__chevron--open' : ''}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
                 </span>
             </div>
             {open && (
                 <div className='q-card__body'>
-                    <div className='q-card__section'>
-                        <span className='q-card__tag q-card__tag--intention'>Intention</span>
-                        <p>{item.intention}</p>
-                    </div>
-                    <div className='q-card__section'>
-                        <span className='q-card__tag q-card__tag--answer'>Model Answer</span>
-                        <p>{item.answer}</p>
-                    </div>
+                    {!revealed ? (
+                        <div className='q-card__confidence'>
+                            <p>Before you read the answer: how sure are you that you can answer this?</p>
+                            <div className='q-card__levels'>
+                                {CONFIDENCE_LEVELS.map(level => (
+                                    <button key={level} className='q-card__level' onClick={() => onPickConfidence(level)}>{level}</button>
+                                ))}
+                                <button className='q-card__skip' onClick={() => setRevealed(true)}>Skip</button>
+                            </div>
+                            <span className='q-card__hint'>1 = no idea, 5 = I know it well</span>
+                        </div>
+                    ) : (
+                        <>
+                            <div className='q-card__section'>
+                                <span className='q-card__tag q-card__tag--intention'>Intention</span>
+                                <p>{item.intention}</p>
+                            </div>
+                            <div className='q-card__section'>
+                                <span className='q-card__tag q-card__tag--answer'>Model Answer</span>
+                                <p>{item.answer}</p>
+                            </div>
+                            <div className='q-card__review'>
+                                <span>Did you really know it?</span>
+                                <button className='q-card__mark q-card__mark--knew' disabled={saving} onClick={() => onMark(true)}>I knew it</button>
+                                <button className='q-card__mark q-card__mark--missed' disabled={saving} onClick={() => onMark(false)}>I didn't</button>
+                                {item.nextReviewAt && (
+                                    <span className='q-card__next'>Next revision: {new Date(item.nextReviewAt).toLocaleDateString()}</span>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </div>
@@ -65,7 +113,7 @@ const RoadMapDay = ({ day, onToggleTask }) => (
 const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const [ notFoundId, setNotFoundId ] = useState(null)
-    const { report, getReportById, loading, getResumePdf, togglePlanTask } = useInterview()
+    const { report, getReportById, loading, getResumePdf, togglePlanTask, reviewQuestion } = useInterview()
     const { interviewId } = useParams()
     const notFound = notFoundId === interviewId
 
@@ -88,6 +136,13 @@ const Interview = () => {
         const success = await togglePlanTask({ dayIndex, taskIndex, done })
         if (!success) {
             alert("Could not save your progress, please try again")
+        }
+    }
+
+    const onReviewQuestion = async (type, index, { confidence, knewIt }) => {
+        const success = await reviewQuestion({ type, index, confidence, knewIt })
+        if (!success) {
+            alert("Could not save your answer check, please try again")
         }
     }
 
@@ -122,6 +177,16 @@ const Interview = () => {
     const doneTasks = report.preparationPlan.reduce((sum, day) => sum + (day.completedTasks?.length || 0), 0)
     const progress = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0
 
+    // all questions with their type and position, used by "Revise Today" and "Blind Spots"
+    const allQuestions = [
+        ...report.technicalQuestions.map((q, index) => ({ q, index, type: 'technical' })),
+        ...report.behavioralQuestions.map((q, index) => ({ q, index, type: 'behavioral' })),
+    ]
+    const endOfToday = new Date()
+    endOfToday.setHours(23, 59, 59, 999)
+    const dueQuestions = allQuestions.filter(({ q }) => q.nextReviewAt && new Date(q.nextReviewAt) <= endOfToday)
+    // sure about it (4 or 5) but didn't really know it
+    const blindSpots = allQuestions.filter(({ q }) => q.confidence >= 4 && q.knewIt === false)
 
     return (
         <div className='interview-page'>
@@ -162,7 +227,7 @@ const Interview = () => {
                             </div>
                             <div className='q-list'>
                                 {report.technicalQuestions.map((q, i) => (
-                                    <QuestionCard key={i} item={q} index={i} />
+                                    <QuestionCard key={i} item={q} index={i} onReview={(review) => onReviewQuestion('technical', i, review)} />
                                 ))}
                             </div>
                         </section>
@@ -176,7 +241,7 @@ const Interview = () => {
                             </div>
                             <div className='q-list'>
                                 {report.behavioralQuestions.map((q, i) => (
-                                    <QuestionCard key={i} item={q} index={i} />
+                                    <QuestionCard key={i} item={q} index={i} onReview={(review) => onReviewQuestion('behavioral', i, review)} />
                                 ))}
                             </div>
                         </section>
@@ -193,6 +258,32 @@ const Interview = () => {
                                     <RoadMapDay key={day.day} day={day} onToggleTask={(taskIndex, done) => onToggleTask(dayIndex, taskIndex, done)} />
                                 ))}
                             </div>
+                        </section>
+                    )}
+
+                    {activeNav === 'revise' && (
+                        <section>
+                            <div className='content-header'>
+                                <h2>Revise Today</h2>
+                                <span className='content-header__count'>{dueQuestions.length} questions</span>
+                            </div>
+                            {dueQuestions.length === 0 ? (
+                                <p className='revise-empty'>
+                                    Nothing to revise today. Open any question, rate how sure you are, read the answer and mark "I knew it" or "I didn't".
+                                    Questions you didn't know come back here the next day, the ones you knew come back after 3 days, then 7 days.
+                                </p>
+                            ) : (
+                                <div className='q-list'>
+                                    {dueQuestions.map(({ q, index, type }) => (
+                                        <QuestionCard
+                                            key={`${type}-${index}`}
+                                            item={q}
+                                            index={index}
+                                            label={`${type === 'technical' ? 'T' : 'B'}${index + 1}`}
+                                            onReview={(review) => onReviewQuestion(type, index, review)} />
+                                    ))}
+                                </div>
+                            )}
                         </section>
                     )}
                 </main>
@@ -228,6 +319,24 @@ const Interview = () => {
                             <div className='sidebar-divider' />
                         </>
                     )}
+
+                    {/* Blind Spots: questions the user was sure about but didn't really know */}
+                    <div className='blind-spots'>
+                        <p className='blind-spots__label'>Blind Spots</p>
+                        {blindSpots.length === 0 ? (
+                            <p className='blind-spots__empty'>Questions you rated 4 or 5 but didn't really know will show up here.</p>
+                        ) : (
+                            <ul className='blind-spots__list'>
+                                {blindSpots.map(({ q, index, type }) => (
+                                    <li key={`${type}-${index}`} onClick={() => setActiveNav(type)} title={q.question}>
+                                        {q.question}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className='sidebar-divider' />
 
                     {/* Skill Gaps */}
                     <div className='skill-gaps'>

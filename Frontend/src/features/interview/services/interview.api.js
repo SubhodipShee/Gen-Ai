@@ -81,3 +81,21 @@ export const updatePlanProgress = async ({ interviewId, dayIndex, taskIndex, don
     return response.data
 }
 
+/**
+ * @description Service to save the confidence check of a question (type: "technical" or "behavioral").
+ */
+export const updateQuestionReview = async ({ interviewId, type, index, confidence, knewIt }) => {
+    const response = await api.patch(`/api/interview/report/${interviewId}/question`, { type, index, confidence, knewIt })
+
+    return response.data
+}
+
+/**
+ * @description Service to get the skill gaps that repeat across all interview reports of logged in user.
+ */
+export const getInterviewInsights = async () => {
+    const response = await api.get("/api/interview/insights")
+
+    return response.data
+}
+
