@@ -25,6 +25,15 @@ app.use("/api", apiLimiter)
 const authRouter = require("./routes/auth.routes")
 const interviewRouter = require("./routes/interview.routes")
 
+/**
+ * @route GET /api/health
+ * @desc Health check used by the keep-awake ping (GitHub Actions), no database and no login
+ * @access Public
+ */
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "ok" })
+})
+
 //using all the routes here
 app.use("/api/auth", authRouter)
 app.use("/api/interview", interviewRouter)

@@ -16,6 +16,12 @@ describe("auth", () => {
         await app.stop()
     })
 
+    it("answers the health check without login or database", async () => {
+        const res = await api.request("GET", "/api/health")
+        assert.equal(res.status, 200)
+        assert.deepEqual(res.body, { status: "ok" })
+    })
+
     it("registers a new user and sets the login cookie", async () => {
         const res = await api.request("POST", "/api/auth/register", { json: { username: name, email: `${name}@example.com`, password: "Test@12345" } })
         assert.equal(res.status, 201)

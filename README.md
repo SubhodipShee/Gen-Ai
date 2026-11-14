@@ -146,6 +146,9 @@ GitHub Actions runs the frontend lint and build, the API tests and the browser t
 
 ## 📝 API Endpoints
 
+### Health
+- `GET /api/health` - Returns `{ "status": "ok" }` (no login, no database). The `Keep backend awake` GitHub Action calls it every 10 minutes so Render's free server does not fall asleep.
+
 ### Auth
 - `POST /api/auth/register` - Create a new account
 - `POST /api/auth/login` - Authenticate user
